@@ -2,6 +2,8 @@
 // By XU, Tianchen
 //--------------------------------------------------------------------------------------
 
+#include "SharedConst.h"
+
 struct DSInOut
 {
 	float4	Pos		: SV_POSITION;
@@ -27,9 +29,18 @@ DSInOut main(HSConstDataOut input,
 {
 	DSInOut output;
 
+#if 0
+	// Distance to centroid in rasterizer space
+	const float2 vVertex = patch[0].Pos.xy * domain.x + patch[1].Pos.xy * domain.y + patch[2].Pos.xy * domain.z;
+	const float2 vCentroid = (patch[0].Pos.xy + patch[1].Pos.xy + patch[2].Pos.xy) / 3.0;
+	const float fRadius = distance(vVertex, vCentroid) * GRID_SIZE * 0.5;
+
 	// Change domain location with offset for extrapolation
-	const float3 vExtDir = normalize(domain - 1.0 / 3.0);
-	domain += vExtDir * 4.0;	// TODO: always 4.0?
+	domain += (domain - 1.0 / 3.0) / fRadius;
+#else
+	// Change domain location with offset for extrapolation
+	domain += normalize(domain - 1.0 / 3.0) * 8.1;	// TODO: always 8.1?
+#endif
 
 	// Extrapolations
 	output.Pos = patch[0].Pos * domain.x + patch[1].Pos * domain.y + patch[2].Pos * domain.z;

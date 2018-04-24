@@ -2,8 +2,6 @@
 // By XU, Tianchen
 //--------------------------------------------------------------------------------------
 
-#include "SharedConst.h"
-
 struct VSIn
 {
 	float3	Pos		: POSITION;

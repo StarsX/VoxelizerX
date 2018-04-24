@@ -60,14 +60,17 @@ HSOut main(InputPatch<VSOut, NUM_CONTROL_POINTS> ip, uint i : SV_OutputControlPo
 	const float fSizeYZ = dot(vAABBExt.yz, vAABBExt.yz);
 	const float fSizeZX = dot(vAABBExt.zx, vAABBExt.zx);
 
-	// Select the maximal view
+	// Select the view with maximal projected AABB
 	output.Pos.xy = fSizeXY > fSizeYZ ?
 		(fSizeXY > fSizeZX ? ip[i].Pos.xy : ip[i].Pos.zx) :
 		(fSizeYZ > fSizeZX ? ip[i].Pos.yz : ip[i].Pos.zx);
 	output.Pos.zw = float2(0.5, 1.0);
 
+	// Other attributes
 	output.PosLoc = ip[i].PosLoc;
 	output.Nrm = ip[i].Nrm;
+
+	// Texture 3D space
 	output.TexLoc = ip[i].Pos * 0.5 + 0.5;
 	output.TexLoc.y = 1.0 - output.TexLoc.y;
 
