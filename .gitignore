@@ -18,7 +18,6 @@
 x64/
 x86/
 bld/
-[Bb]in/
 [Oo]bj/
 [Ll]og/
 
@@ -48,12 +47,15 @@ artifacts/
 *_p.c
 *_i.h
 *.ilk
+*.iobj
+*.ipdb
 *.meta
-*.obj
+//*.obj
 *.pch
 *.pdb
 *.pgc
 *.pgd
+*.res
 *.rsp
 *.sbr
 *.tlb
