@@ -335,7 +335,7 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, const DXGI_SURFAC
 		// View
 		// Setup the camera's view parameters
 		const auto vLookAtPt = XMFLOAT4(0.0f, 4.0f, 0.0f, 1.0f);
-		const auto vEyePt = XMFLOAT4(-8.0f, 12.0f, 16.0f, 1.0f);
+		const auto vEyePt = XMFLOAT4(-8.0f, 12.0f, 14.0f, 1.0f);
 		g_Camera.SetViewParams(XMLoadFloat4(&vEyePt), XMLoadFloat4(&vLookAtPt));
 
 		g_bLoadingComplete = true;

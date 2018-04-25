@@ -4,6 +4,9 @@
 
 #include "SharedConst.h"
 
+#define CONSERVATION_AMT	1.0 / 3.0				// Measured by pixels, e.g. 1.0 / 3.0 means 1/3 pixel size
+#define NUM_CONTROL_POINTS	3
+
 struct DSInOut
 {
 	float4	Pos		: SV_POSITION;
@@ -20,8 +23,6 @@ struct HSConstDataOut
 	float InsideTessFactor	: SV_InsideTessFactor;	// e.g. would be Inside[2] for a quad domain
 };
 
-#define NUM_CONTROL_POINTS	3
-
 [domain("tri")]
 DSInOut main(HSConstDataOut input,
 	float3 domain : SV_DomainLocation,
@@ -29,18 +30,14 @@ DSInOut main(HSConstDataOut input,
 {
 	DSInOut output;
 
-#if 0
 	// Distance to centroid in rasterizer space
 	const float2 vVertex = patch[0].Pos.xy * domain.x + patch[1].Pos.xy * domain.y + patch[2].Pos.xy * domain.z;
 	const float2 vCentroid = (patch[0].Pos.xy + patch[1].Pos.xy + patch[2].Pos.xy) / 3.0;
-	const float fRadius = distance(vVertex, vCentroid) * GRID_SIZE * 0.5;
+	const float fDistance = distance(vVertex, vCentroid) * GRID_SIZE * 0.5;
 
 	// Change domain location with offset for extrapolation
-	domain += (domain - 1.0 / 3.0) / fRadius;
-#else
-	// Change domain location with offset for extrapolation
-	domain += normalize(domain - 1.0 / 3.0) * 8.1;	// TODO: always 8.1?
-#endif
+	const float3 f1PixelOffset = (domain - 1.0 / 3.0) / fDistance;
+	domain += CONSERVATION_AMT * f1PixelOffset;
 
 	// Extrapolations
 	output.Pos = patch[0].Pos * domain.x + patch[1].Pos * domain.y + patch[2].Pos * domain.z;

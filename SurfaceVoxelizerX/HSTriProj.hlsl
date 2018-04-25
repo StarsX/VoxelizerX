@@ -41,6 +41,12 @@ HSConstDataOut CalcHSPatchConstants()
 	return Output;
 }
 
+// Cross-product-like operation in 2D space
+float cross2D(float2 v1, float2 v2)
+{
+	return v1.x * v2.y - v1.y * v2.x;
+}
+
 [domain("tri")]
 [partitioning("integer")]
 [outputtopology("triangle_cw")]
@@ -50,15 +56,14 @@ HSOut main(InputPatch<VSOut, NUM_CONTROL_POINTS> ip, uint i : SV_OutputControlPo
 {
 	HSOut output;
 
-	// Calculate AABB
-	const float3 vAABBMin = min(min(ip[0].Pos, ip[1].Pos), ip[2].Pos);
-	const float3 vAABBMax = max(max(ip[0].Pos, ip[1].Pos), ip[2].Pos);
-	const float3 vAABBExt = vAABBMax - vAABBMin;
+	// Calculate projected edges of 3-views respectively
+	const float3 vEdge1 = ip[1].Pos - ip[0].Pos;
+	const float3 vEdge2 = ip[2].Pos - ip[1].Pos;
 
-	// Calculate projected AABB sizes for 3 views
-	const float fSizeXY = dot(vAABBExt.xy, vAABBExt.xy);
-	const float fSizeYZ = dot(vAABBExt.yz, vAABBExt.yz);
-	const float fSizeZX = dot(vAABBExt.zx, vAABBExt.zx);
+	// Calculate projected triangle sizes (equivalent to area) for 3 views
+	const float fSizeXY = abs(cross2D(vEdge1.xy, vEdge2.xy));
+	const float fSizeYZ = abs(cross2D(vEdge1.yz, vEdge2.yz));
+	const float fSizeZX = abs(cross2D(vEdge1.zx, vEdge2.zx));
 
 	// Select the view with maximal projected AABB
 	output.Pos.xy = fSizeXY > fSizeYZ ?
@@ -74,7 +79,9 @@ HSOut main(InputPatch<VSOut, NUM_CONTROL_POINTS> ip, uint i : SV_OutputControlPo
 	output.TexLoc = ip[i].Pos * 0.5 + 0.5;
 	output.TexLoc.y = 1.0 - output.TexLoc.y;
 
-	// Record projected AABB
+	// Calculate projected AABB
+	const float3 vAABBMin = min(min(ip[0].Pos, ip[1].Pos), ip[2].Pos);
+	const float3 vAABBMax = max(max(ip[0].Pos, ip[1].Pos), ip[2].Pos);
 	output.Bound.xy = fSizeXY > fSizeYZ ?
 		(fSizeXY > fSizeZX ? vAABBMin.xy : vAABBMin.zx) :
 		(fSizeYZ > fSizeZX ? vAABBMin.yz : vAABBMin.zx);
