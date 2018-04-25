@@ -131,10 +131,16 @@
     <FxCompile Include="PSTriProj.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="CSRayCast.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="VSTriProjTess.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
     <FxCompile Include="VSTriProj.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="CSRayCast.hlsl">
+    <FxCompile Include="PSTriProjTess.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

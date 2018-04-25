@@ -47,12 +47,11 @@ enum ButtonID
 	IDC_TOGGLEREF,
 	IDC_CHANGEDEVICE,
 	IDC_TOGGLEWARP,
-	IDC_RENDER_GS = 5,
-	IDC_RENDER_TESS,
-	IDC_RENDER_STYLIZED
+	IDC_TRI_PROJ_TESS = 5,
+	IDC_TRI_PROJ
 };
 
-uint8_t							g_uRenderMode = IDC_RENDER_GS;
+uint8_t							g_bVoxelTess = true;
 
 //--------------------------------------------------------------------------------------
 // Forward declarations 
@@ -149,12 +148,11 @@ void InitApp()
 	g_SampleUI.Init(&g_DialogResourceManager);
 	g_SampleUI.SetCallback(OnGUIEvent);
 
-	auto iX = -160;
+	auto iX = -200;
 	auto iY = -670;
-	//g_SampleUI.AddRadioButton(IDC_RENDER_GS, 0, L"Simple silhouette by geometry shader", iX, iY += 26, 150, 22);
-	//g_SampleUI.AddRadioButton(IDC_RENDER_TESS, 0, L"Simple silhouette by tessellation", iX, iY += 26, 150, 22);
-	//g_SampleUI.AddRadioButton(IDC_RENDER_STYLIZED, 0, L"Stylized silhouette by tessellation", iX, iY += 26, 150, 22);
-	//g_SampleUI.GetRadioButton(IDC_RENDER_GS)->SetChecked(true);
+	g_SampleUI.AddRadioButton(IDC_TRI_PROJ_TESS, 0, L"Voxelize by tessellation for max AABB-views", iX, iY += 26, 150, 22);
+	g_SampleUI.AddRadioButton(IDC_TRI_PROJ, 0, L"Voxelize by union of 3-AABB-views", iX, iY += 26, 150, 22);
+	g_SampleUI.GetRadioButton(IDC_TRI_PROJ_TESS)->SetChecked(true);
 }
 
 //--------------------------------------------------------------------------------------
@@ -279,10 +277,11 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, vo
 	switch (nControlID)
 	{
 		// Standard DXUT controls
-	case IDC_RENDER_GS:
-	case IDC_RENDER_TESS:
-	case IDC_RENDER_STYLIZED:
-		g_uRenderMode = nControlID;
+	case IDC_TRI_PROJ_TESS:
+		g_bVoxelTess = true;
+		break;
+	case IDC_TRI_PROJ:
+		g_bVoxelTess = false;
 		break;
 	}
 }
@@ -314,12 +313,14 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, const DXGI_SURFAC
 
 	g_pSurfaceVoxelizer = make_unique<SurfaceVoxelizer>(pd3dDevice, g_pShader, g_pState);
 
-	auto loadVSTask = g_pShader->CreateVertexShader(L"VSTriProj.cso", SurfaceVoxelizer::VS_TRI_PROJ);
+	auto loadVSTask = g_pShader->CreateVertexShader(L"VSTriProjTess.cso", SurfaceVoxelizer::VS_TRI_PROJ_TESS);
+	loadVSTask = loadVSTask && g_pShader->CreateVertexShader(L"VSTriProj.cso", SurfaceVoxelizer::VS_TRI_PROJ);
 	loadVSTask = loadVSTask && g_pShader->CreateVertexShader(L"VSPointArray.cso", SurfaceVoxelizer::VS_POINT_ARRAY);
 	loadVSTask = loadVSTask && g_pShader->CreateVertexShader(L"VSBoxArray.cso", SurfaceVoxelizer::VS_BOX_ARRAY);
 	const auto loadHSTask = g_pShader->CreateHullShader(L"HSTriProj.cso", SurfaceVoxelizer::HS_TRI_PROJ);
 	const auto loadDSTask = g_pShader->CreateDomainShader(L"DSTriProj.cso", SurfaceVoxelizer::DS_TRI_PROJ);
-	auto loadPSTask = g_pShader->CreatePixelShader(L"PSTriProj.cso", SurfaceVoxelizer::PS_TRI_PROJ);
+	auto loadPSTask = g_pShader->CreatePixelShader(L"PSTriProjTess.cso", SurfaceVoxelizer::PS_TRI_PROJ_TESS);
+	loadPSTask = loadPSTask && g_pShader->CreatePixelShader(L"PSTriProj.cso", SurfaceVoxelizer::PS_TRI_PROJ);
 	loadPSTask = loadPSTask && g_pShader->CreatePixelShader(L"PSSimple.cso", SurfaceVoxelizer::PS_SIMPLE);
 	auto loadCSTask = g_pShader->CreateComputeShader(L"CSRayCast.cso", SurfaceVoxelizer::CS_RAY_CAST);
 	
@@ -424,11 +425,11 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 
 	// Render
 	g_pSurfaceVoxelizer->UpdateFrame(g_Camera.GetEyePt(), mViewProj);
-	if (true) g_pSurfaceVoxelizer->Render();
+	if (true) g_pSurfaceVoxelizer->Render(g_bVoxelTess);
 	else
 	{
 		pd3dImmediateContext->OMSetRenderTargets(0, nullptr, nullptr);
-		g_pSurfaceVoxelizer->Render(pUAVSwapChain);
+		g_pSurfaceVoxelizer->Render(pUAVSwapChain, g_bVoxelTess);
 		pd3dImmediateContext->OMSetRenderTargets(1, pRTVs, nullptr);
 	}
 

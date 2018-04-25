@@ -92,18 +92,18 @@ void SurfaceVoxelizer::UpdateFrame(DirectX::CXMVECTOR vEyePt, DirectX::CXMMATRIX
 	if (m_pCBPerObject) m_pDXContext->UpdateSubresource(m_pCBPerObject.Get(), 0, nullptr, &cbPerObject, 0, 0);
 }
 
-void SurfaceVoxelizer::Render()
+void SurfaceVoxelizer::Render(const bool bTess)
 {
-	voxelize();
+	voxelize(bTess);
 
 	renderBoxArray();
 }
 
-void SurfaceVoxelizer::Render(const CPDXUnorderedAccessView &pUAVSwapChain)
+void SurfaceVoxelizer::Render(const CPDXUnorderedAccessView &pUAVSwapChain, const bool bTess)
 {
-	voxelize();
+	voxelize(bTess);
 
-	renderRayCastSurface(pUAVSwapChain);
+	renderRayCast(pUAVSwapChain);
 }
 
 void SurfaceVoxelizer::CreateVertexLayout(const CPDXDevice &pDXDevice, CPDXInputLayout &pVertexLayout, const spShader &pShader, const uint8_t uVS)
@@ -162,7 +162,7 @@ void SurfaceVoxelizer::createCBs()
 	ThrowIfFailed(m_pDXDevice->CreateBuffer(&desc, &subResData, &m_pCBBound));
 }
 
-void SurfaceVoxelizer::voxelize()
+void SurfaceVoxelizer::voxelize(const bool bTess)
 {
 	auto pRTV = CPDXRenderTargetView();
 	auto pDSV = CPDXDepthStencilView();
@@ -177,6 +177,7 @@ void SurfaceVoxelizer::voxelize()
 	m_pDXContext->OMSetRenderTargetsAndUnorderedAccessViews(0, nullptr, nullptr,
 		0, 1, m_pTxGrid->GetUAV().GetAddressOf(), &uInitCount);
 	m_pDXContext->RSSetViewports(uNumViewports, &m_VpSlice);
+	m_pDXContext->RSSetState(m_pState->CullNone().Get());
 
 	m_pDXContext->ClearUnorderedAccessViewFloat(m_pTxGrid->GetUAV().Get(), DirectX::Colors::Transparent);
 	
@@ -187,19 +188,28 @@ void SurfaceVoxelizer::voxelize()
 	m_pDXContext->IASetIndexBuffer(m_pIB.Get(), DXGI_FORMAT_R32_UINT, 0);
 	m_pDXContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 
-	m_pDXContext->VSSetShader(m_pShader->GetVertexShader(VS_TRI_PROJ).Get(), nullptr, 0);
-	m_pDXContext->HSSetShader(m_pShader->GetHullShader(HS_TRI_PROJ).Get(), nullptr, 0);
-	m_pDXContext->DSSetShader(m_pShader->GetDomainShader(DS_TRI_PROJ).Get(), nullptr, 0);
-	m_pDXContext->PSSetShader(m_pShader->GetPixelShader(PS_TRI_PROJ).Get(), nullptr, 0);
-	m_pDXContext->RSSetState(m_pState->CullNone().Get());
+	if (bTess)
+	{
+		m_pDXContext->VSSetShader(m_pShader->GetVertexShader(VS_TRI_PROJ_TESS).Get(), nullptr, 0);
+		m_pDXContext->HSSetShader(m_pShader->GetHullShader(HS_TRI_PROJ).Get(), nullptr, 0);
+		m_pDXContext->DSSetShader(m_pShader->GetDomainShader(DS_TRI_PROJ).Get(), nullptr, 0);
+		m_pDXContext->PSSetShader(m_pShader->GetPixelShader(PS_TRI_PROJ_TESS).Get(), nullptr, 0);
 
-	m_pDXContext->DrawIndexed(m_uNumIndices, 0, 0);
+		m_pDXContext->DrawIndexed(m_uNumIndices, 0, 0);
+	}
+	else
+	{
+		m_pDXContext->VSSetShader(m_pShader->GetVertexShader(VS_TRI_PROJ).Get(), nullptr, 0);
+		m_pDXContext->PSSetShader(m_pShader->GetPixelShader(PS_TRI_PROJ).Get(), nullptr, 0);
+
+		m_pDXContext->DrawIndexedInstanced(m_uNumIndices, 3, 0, 0, 0);
+	}
 
 	// Reset states
-	m_pDXContext->RSSetState(nullptr);
 	m_pDXContext->DSSetShader(nullptr, nullptr, 0);
 	m_pDXContext->HSSetShader(nullptr, nullptr, 0);
 	m_pDXContext->IASetInputLayout(nullptr);
+	m_pDXContext->RSSetState(nullptr);
 	m_pDXContext->RSSetViewports(uNumViewports, &vpBack);
 	m_pDXContext->OMSetRenderTargets(1, pRTV.GetAddressOf(), pDSV.Get());
 }
@@ -239,7 +249,7 @@ void SurfaceVoxelizer::renderBoxArray()
 	m_pDXContext->VSSetShaderResources(0, 1, &g_pNullSRV);
 }
 
-void SurfaceVoxelizer::renderRayCastSurface(const CPDXUnorderedAccessView &pUAVSwapChain)
+void SurfaceVoxelizer::renderRayCast(const CPDXUnorderedAccessView &pUAVSwapChain)
 {
 	auto pSrc = CPDXResource();
 	auto desc = D3D11_TEXTURE2D_DESC();

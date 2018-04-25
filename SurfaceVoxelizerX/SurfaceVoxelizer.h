@@ -9,6 +9,7 @@ class SurfaceVoxelizer
 public:
 	enum VertexShaderID		: uint32_t
 	{
+		VS_TRI_PROJ_TESS,
 		VS_TRI_PROJ,
 		VS_POINT_ARRAY,
 		VS_BOX_ARRAY
@@ -26,6 +27,7 @@ public:
 
 	enum PixelShaderID		: uint32_t
 	{
+		PS_TRI_PROJ_TESS,
 		PS_TRI_PROJ,
 		PS_SIMPLE
 	};
@@ -40,8 +42,8 @@ public:
 
 	void Init(const uint32_t uWidth, const uint32_t uHeight, const char *szFileName = "Media\\bunny.obj");
 	void UpdateFrame(DirectX::CXMVECTOR vEyePt, DirectX::CXMMATRIX mViewProj);
-	void Render();
-	void Render(const XSDX::CPDXUnorderedAccessView &pUAVSwapChain);
+	void Render(const bool bTess = true);
+	void Render(const XSDX::CPDXUnorderedAccessView &pUAVSwapChain, const bool bTess = true);
 
 	static void CreateVertexLayout(const XSDX::CPDXDevice &pDXDevice, XSDX::CPDXInputLayout &pVertexLayout,
 		const XSDX::spShader &pShader, const uint8_t uVS);
@@ -71,10 +73,10 @@ protected:
 	void createVB(const uint32_t uNumVert, const uint32_t uStride, const uint8_t *pData);
 	void createIB(const uint32_t uNumIndices, const uint32_t *pData);
 	void createCBs();
-	void voxelize();
+	void voxelize(const bool bTess);
 	void renderPointArray();
 	void renderBoxArray();
-	void renderRayCastSurface(const XSDX::CPDXUnorderedAccessView &pUAVSwapChain);
+	void renderRayCast(const XSDX::CPDXUnorderedAccessView &pUAVSwapChain);
 
 	CBPerFrame						m_cbPerFrame;
 	uint32_t						m_uVertexStride;
