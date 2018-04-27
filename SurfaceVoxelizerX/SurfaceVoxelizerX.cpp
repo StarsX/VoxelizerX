@@ -148,10 +148,10 @@ void InitApp()
 	g_SampleUI.Init(&g_DialogResourceManager);
 	g_SampleUI.SetCallback(OnGUIEvent);
 
-	auto iX = -200;
+	auto iX = -240;
 	auto iY = -670;
-	g_SampleUI.AddRadioButton(IDC_TRI_PROJ_TESS, 0, L"Voxelize by tessellation for max AABB-views", iX, iY += 26, 150, 22);
-	g_SampleUI.AddRadioButton(IDC_TRI_PROJ, 0, L"Voxelize by union of 3-AABB-views", iX, iY += 26, 150, 22);
+	g_SampleUI.AddRadioButton(IDC_TRI_PROJ_TESS, 0, L"Tessellation for AAP view of max projected area", iX, iY += 26, 150, 22);
+	g_SampleUI.AddRadioButton(IDC_TRI_PROJ, 0, L"Union of 3 axis-aligned projection (AAP) views", iX, iY += 26, 150, 22);
 	g_SampleUI.GetRadioButton(IDC_TRI_PROJ_TESS)->SetChecked(true);
 }
 
@@ -261,12 +261,6 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserCo
 			g_bShowFPS = !g_bShowFPS; break;
 		}
 	}
-	/*else
-	{
-	switch (nChar)
-	{
-	}
-	}*/
 }
 
 //--------------------------------------------------------------------------------------
