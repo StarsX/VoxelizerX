@@ -32,7 +32,7 @@ VSOut main(const uint vID : SV_VertexID, const uint SliceID : SV_InstanceID)
 	output.Pos = mul(float4(vPos, 1.0), g_mWorldViewProj);
 	output.Nrm = min16float4(mul(vGrid.xyz * 2.0 - 1.0, (float3x3)g_mWorldIT), vGrid.w);
 
-	//if (vGrid.w <= 0.0) output.Pos.w = 0.0;
+	output.Pos.w = vGrid.w > 0.0 ? output.Pos.w : 0.0;
 
 	return output;
 }

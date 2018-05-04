@@ -4,6 +4,8 @@
 
 #include "SharedConst.h"
 
+#define	MIP_LEVEL	0
+
 struct VSOut
 {
 	float4		Pos	: SV_POSITION;
@@ -46,19 +48,20 @@ VSOut main(const uint vID : SV_VertexID, const uint InstID : SV_InstanceID)
 	float3 vPerBoxPos = float3(vPos2D.x, -vPos2D.y, 1.0);
 	vPerBoxPos = mul(vPerBoxPos, mPlane[planeID]);
 
-	const uint uSliceSize = GRID_SIZE * GRID_SIZE;
+	const uint uGridSize = GRID_SIZE >> MIP_LEVEL;
+	const uint uSliceSize = uGridSize * uGridSize;
 	const uint uPerSliceID = boxID % uSliceSize;
-	const uint3 vLoc = { uPerSliceID % GRID_SIZE, uPerSliceID / GRID_SIZE, boxID / uSliceSize };
-	float3 vPos = (vLoc * 2 + 1) / (GRID_SIZE * 2.0);
+	const uint3 vLoc = { uPerSliceID % uGridSize, uPerSliceID / uGridSize, boxID / uSliceSize };
+	float3 vPos = (vLoc * 2 + 1) / (uGridSize * 2.0);
 	vPos = vPos * float3(2.0, -2.0, 2.0) + float3(-1.0, 1.0, -1.0);
-	vPos += vPerBoxPos / GRID_SIZE;
+	vPos += vPerBoxPos / uGridSize;
 	
-	const min16float4 vGrid = g_txGrid[vLoc];
+	const min16float4 vGrid = g_txGrid.mips[MIP_LEVEL][vLoc];
 
 	output.Pos = mul(float4(vPos, 1.0), g_mWorldViewProj);
 	output.Nrm = min16float4(mul(mPlane[planeID][2], (float3x3)g_mWorldIT), vGrid.w);
 
-	if (vGrid.w <= 0.0) output.Pos.w = 0.0;
+	output.Pos.w = vGrid.w > 0.0 ? output.Pos.w : 0.0;
 
 	return output;
 }

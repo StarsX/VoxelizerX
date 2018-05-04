@@ -143,5 +143,11 @@
     <FxCompile Include="PSTriProjTess.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="CSDownSample.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="CSFillSolid.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

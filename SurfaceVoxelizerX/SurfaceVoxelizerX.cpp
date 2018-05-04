@@ -23,11 +23,13 @@ CModelViewerCamera				g_Camera;					// A model viewing camera
 // CD3DSettingsDlg				g_D3DSettingsDlg;			// Device settings dialog
 // CDXUTDialog					g_HUD;						// manages the 3D   
 CDXUTDialog						g_SampleUI;					// dialog for sample specific controls
-bool							g_bTypedUAVLoad = false;
-bool							g_bROVSupport = false;
-bool							g_bShowHelp = false;		// If true, it renders the UI control text
-bool							g_bShowFPS = true;			// If true, it shows the FPS
-bool							g_bLoadingComplete = false;
+auto							g_bTypedUAVLoad = false;
+auto							g_bShowHelp = false;		// If true, it renders the UI control text
+auto							g_bShowFPS = true;			// If true, it shows the FPS
+auto							g_bLoadingComplete = false;
+
+auto							g_bVoxelTess = true;
+auto							g_bRayCast = false;
 
 upCDXUTTextHelper				g_pTxtHelper;
 
@@ -48,10 +50,10 @@ enum ButtonID
 	IDC_CHANGEDEVICE,
 	IDC_TOGGLEWARP,
 	IDC_TRI_PROJ_TESS = 5,
-	IDC_TRI_PROJ
+	IDC_TRI_PROJ,
+	IDC_BOX_ARRAY,
+	IDC_RAY_CAST
 };
-
-uint8_t							g_bVoxelTess = true;
 
 //--------------------------------------------------------------------------------------
 // Forward declarations 
@@ -120,7 +122,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
 	auto deviceSettings = DXUTDeviceSettings();
 	DXUTApplyDefaultDeviceSettings(&deviceSettings);
-	deviceSettings.MinimumFeatureLevel = D3D_FEATURE_LEVEL_11_0;
+	deviceSettings.MinimumFeatureLevel = D3D_FEATURE_LEVEL_11_1;
 	deviceSettings.d3d11.AutoCreateDepthStencil = true;
 	// UAV cannot be DXGI_FORMAT_R8G8B8A8_UNORM_SRGB
 	deviceSettings.d3d11.sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -153,6 +155,9 @@ void InitApp()
 	g_SampleUI.AddRadioButton(IDC_TRI_PROJ_TESS, 0, L"Tessellation for AAP view of max projected area", iX, iY += 26, 150, 22);
 	g_SampleUI.AddRadioButton(IDC_TRI_PROJ, 0, L"Union of 3 axis-aligned projection (AAP) views", iX, iY += 26, 150, 22);
 	g_SampleUI.GetRadioButton(IDC_TRI_PROJ_TESS)->SetChecked(true);
+	g_SampleUI.AddRadioButton(IDC_BOX_ARRAY, 1, L"Render surface voxels as box array", iX, iY += 36, 150, 22);
+	g_SampleUI.AddRadioButton(IDC_RAY_CAST, 1, L"Render solid voxels with raycasting", iX, iY += 26, 150, 22);
+	g_SampleUI.GetRadioButton(IDC_BOX_ARRAY)->SetChecked(true);
 }
 
 //--------------------------------------------------------------------------------------
@@ -277,6 +282,12 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, vo
 	case IDC_TRI_PROJ:
 		g_bVoxelTess = false;
 		break;
+	case IDC_BOX_ARRAY:
+		g_bRayCast = false;
+		break;
+	case IDC_RAY_CAST:
+		g_bRayCast = true;
+		break;
 	}
 }
 
@@ -301,6 +312,12 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, const DXGI_SURFAC
 	V_RETURN(g_DialogResourceManager.OnD3D11CreateDevice(pd3dDevice, pd3dImmediateContext));
 	g_pTxtHelper = make_unique<CDXUTTextHelper>(pd3dDevice, pd3dImmediateContext, &g_DialogResourceManager, 15);
 
+	D3D11_FEATURE_DATA_D3D11_OPTIONS2 features2;
+	hr = pd3dDevice->CheckFeatureSupport(D3D11_FEATURE_D3D11_OPTIONS2, &features2, sizeof(D3D11_FEATURE_DATA_D3D11_OPTIONS2));
+	g_bTypedUAVLoad = features2.TypedUAVLoadAdditionalFormats;
+	//if (g_bTypedUAVLoad) MessageBoxA(nullptr, "Supported!", "Typed UAV load", 0);
+	//else MessageBoxA(nullptr, "NOT supported!", "Typed UAV load", 0);
+
 	// Load shaders asynchronously.
 	g_pShader = make_shared<Shader>(pd3dDevice);
 	g_pState = make_shared<State>(pd3dDevice);
@@ -316,7 +333,9 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, const DXGI_SURFAC
 	auto loadPSTask = g_pShader->CreatePixelShader(L"PSTriProjTess.cso", SurfaceVoxelizer::PS_TRI_PROJ_TESS);
 	loadPSTask = loadPSTask && g_pShader->CreatePixelShader(L"PSTriProj.cso", SurfaceVoxelizer::PS_TRI_PROJ);
 	loadPSTask = loadPSTask && g_pShader->CreatePixelShader(L"PSSimple.cso", SurfaceVoxelizer::PS_SIMPLE);
-	auto loadCSTask = g_pShader->CreateComputeShader(L"CSRayCast.cso", SurfaceVoxelizer::CS_RAY_CAST);
+	auto loadCSTask = g_pShader->CreateComputeShader(L"CSDownSample.cso", SurfaceVoxelizer::CS_DOWN_SAMPLE);
+	loadCSTask = loadCSTask && g_pShader->CreateComputeShader(L"CSFillSolid.cso", SurfaceVoxelizer::CS_FILL_SOLID);
+	loadCSTask = loadCSTask && g_pShader->CreateComputeShader(L"CSRayCast.cso", SurfaceVoxelizer::CS_RAY_CAST);
 	
 	const auto createShaderTask = loadVSTask && loadHSTask && loadDSTask && loadPSTask && loadCSTask;
 
@@ -419,13 +438,13 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 
 	// Render
 	g_pSurfaceVoxelizer->UpdateFrame(g_Camera.GetEyePt(), mViewProj);
-	if (true) g_pSurfaceVoxelizer->Render(g_bVoxelTess);
-	else
+	if (g_bRayCast)
 	{
 		pd3dImmediateContext->OMSetRenderTargets(0, nullptr, nullptr);
 		g_pSurfaceVoxelizer->Render(pUAVSwapChain, g_bVoxelTess);
 		pd3dImmediateContext->OMSetRenderTargets(1, pRTVs, nullptr);
 	}
+	else g_pSurfaceVoxelizer->Render(g_bVoxelTess);
 
 	DXUT_BeginPerfEvent(DXUT_PERFEVENTCOLOR, L"HUD / Stats");
 	g_SampleUI.OnRender(fElapsedTime);

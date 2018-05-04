@@ -34,6 +34,8 @@ public:
 
 	enum ComputeShaderID	: uint32_t
 	{
+		CS_DOWN_SAMPLE,
+		CS_FILL_SOLID,
 		CS_RAY_CAST
 	};
 
@@ -74,6 +76,9 @@ protected:
 	void createIB(const uint32_t uNumIndices, const uint32_t *pData);
 	void createCBs();
 	void voxelize(const bool bTess);
+	void voxelizeSolid(const bool bTess);
+	void downSample(const uint32_t i);
+	void fillSolid(const uint32_t i);
 	void renderPointArray();
 	void renderBoxArray();
 	void renderRayCast(const XSDX::CPDXUnorderedAccessView &pUAVSwapChain);
@@ -81,6 +86,8 @@ protected:
 	CBPerFrame						m_cbPerFrame;
 	uint32_t						m_uVertexStride;
 	uint32_t						m_uNumIndices;
+
+	uint32_t						m_uNumLevels;
 
 	DirectX::XMFLOAT4				m_vBound;
 	DirectX::XMFLOAT2				m_vViewport;

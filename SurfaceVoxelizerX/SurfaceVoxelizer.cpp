@@ -47,8 +47,9 @@ void SurfaceVoxelizer::Init(const uint32_t uWidth, const uint32_t uHeight, const
 	m_vBound = XMFLOAT4(vCenter.x, vCenter.y, vCenter.z, objLoader.GetRadius());
 	createCBs();
 
+	m_uNumLevels = max(static_cast<uint32_t>(log2(GRID_SIZE)), 1);
 	m_pTxGrid = make_unique<Texture3D>(m_pDXDevice);
-	m_pTxGrid->Create(GRID_SIZE, GRID_SIZE, GRID_SIZE, DXGI_FORMAT_R10G10B10A2_UNORM);
+	m_pTxGrid->Create(GRID_SIZE, GRID_SIZE, GRID_SIZE, DXGI_FORMAT_R10G10B10A2_UNORM, true, true, false, m_uNumLevels);
 
 	// Viewport
 	m_VpSlice = CD3D11_VIEWPORT(0.0f, 0.0f, GRID_SIZE, GRID_SIZE);
@@ -101,7 +102,7 @@ void SurfaceVoxelizer::Render(const bool bTess)
 
 void SurfaceVoxelizer::Render(const CPDXUnorderedAccessView &pUAVSwapChain, const bool bTess)
 {
-	voxelize(bTess);
+	voxelizeSolid(bTess);
 
 	renderRayCast(pUAVSwapChain);
 }
@@ -214,6 +215,47 @@ void SurfaceVoxelizer::voxelize(const bool bTess)
 	m_pDXContext->OMSetRenderTargets(1, pRTV.GetAddressOf(), pDSV.Get());
 }
 
+void SurfaceVoxelizer::voxelizeSolid(const bool bTess)
+{
+	voxelize(bTess);
+
+	const auto uIter = m_uNumLevels - 1;
+	for (auto i = 0u; i < uIter; ++i) downSample(i);
+	for (auto i = uIter; i > 0; --i) fillSolid(i);
+}
+
+void SurfaceVoxelizer::downSample(const uint32_t i)
+{
+	// Setup
+	m_pDXContext->CSSetUnorderedAccessViews(0, 1, m_pTxGrid->GetUAV(i).GetAddressOf(), &g_uNullUint);
+	m_pDXContext->CSSetUnorderedAccessViews(1, 1, m_pTxGrid->GetUAV(i + 1).GetAddressOf(), &g_uNullUint);
+	m_pDXContext->CSSetConstantBuffers(0, 1, m_pCBPerObject.GetAddressOf());
+
+	// Dispatch
+	m_pDXContext->CSSetShader(m_pShader->GetComputeShader(CS_DOWN_SAMPLE).Get(), nullptr, 0);
+	m_pDXContext->Dispatch(GRID_SIZE >> i >> 1, GRID_SIZE >> i >> 1, GRID_SIZE >> i >> 1);
+
+	// Unset
+	m_pDXContext->CSSetUnorderedAccessViews(1, 1, &g_pNullUAV, &g_uNullUint);
+	m_pDXContext->CSSetUnorderedAccessViews(0, 1, &g_pNullUAV, &g_uNullUint);
+}
+
+void SurfaceVoxelizer::fillSolid(const uint32_t i)
+{
+	// Setup
+	m_pDXContext->CSSetUnorderedAccessViews(0, 1, m_pTxGrid->GetUAV(i).GetAddressOf(), &g_uNullUint);
+	m_pDXContext->CSSetUnorderedAccessViews(1, 1, m_pTxGrid->GetUAV(i - 1).GetAddressOf(), &g_uNullUint);
+	m_pDXContext->CSSetConstantBuffers(0, 1, m_pCBPerObject.GetAddressOf());
+
+	// Dispatch
+	m_pDXContext->CSSetShader(m_pShader->GetComputeShader(CS_FILL_SOLID).Get(), nullptr, 0);
+	m_pDXContext->Dispatch(GRID_SIZE >> i, GRID_SIZE >> i, GRID_SIZE >> i);
+
+	// Unset
+	m_pDXContext->CSSetUnorderedAccessViews(1, 1, &g_pNullUAV, &g_uNullUint);
+	m_pDXContext->CSSetUnorderedAccessViews(0, 1, &g_pNullUAV, &g_uNullUint);
+}
+
 void SurfaceVoxelizer::renderPointArray()
 {
 	const auto uOffset = 0u;
@@ -244,7 +286,8 @@ void SurfaceVoxelizer::renderBoxArray()
 
 	m_pDXContext->VSSetShaderResources(0, 1, m_pTxGrid->GetSRV().GetAddressOf());
 
-	m_pDXContext->DrawInstanced(4, 6 * GRID_SIZE * GRID_SIZE * GRID_SIZE, 0, 0);
+	const auto uGridSize = GRID_SIZE >> 0;
+	m_pDXContext->DrawInstanced(4, 6 * uGridSize * uGridSize * uGridSize, 0, 0);
 
 	m_pDXContext->VSSetShaderResources(0, 1, &g_pNullSRV);
 }
@@ -259,12 +302,12 @@ void SurfaceVoxelizer::renderRayCast(const CPDXUnorderedAccessView &pUAVSwapChai
 	// Setup
 	m_pDXContext->CSSetUnorderedAccessViews(0, 1, pUAVSwapChain.GetAddressOf(), &g_uNullUint);
 	m_pDXContext->CSSetShaderResources(0, 1, m_pTxGrid->GetSRV().GetAddressOf());
-	m_pDXContext->CSSetSamplers(1, 1, m_pState->LinearClamp().GetAddressOf());
+	//m_pDXContext->CSSetSamplers(0, 1, m_pState->LinearClamp().GetAddressOf());
 	m_pDXContext->CSSetConstantBuffers(0, 1, m_pCBPerObject.GetAddressOf());
 
 	// Dispatch
-	m_pDXContext->CSSetShader(m_pShader->GetComputeShader(CS_RAY_CAST).Get(), nullptr, 0u);
-	m_pDXContext->Dispatch(desc.Width / 32, desc.Height / 16, 1);
+	m_pDXContext->CSSetShader(m_pShader->GetComputeShader(CS_RAY_CAST).Get(), nullptr, 0);
+	m_pDXContext->Dispatch(desc.Width >> 5, desc.Height >> 5, 1);
 
 	// Unset
 	m_pDXContext->CSSetShaderResources(0, 1, &g_pNullSRV);

@@ -48,8 +48,7 @@ RWTexture2D<min16float4>	g_rwPresent	: register (u0);
 //--------------------------------------------------------------------------------------
 // Texture samplers
 //--------------------------------------------------------------------------------------
-SamplerState		g_smpDefault	: register (s0);
-SamplerState		g_smpLinear		: register (s1);
+SamplerState		g_smpLinear		: register (s0);
 
 //--------------------------------------------------------------------------------------
 // Screen space to loacal space
@@ -104,7 +103,7 @@ min16float GetSample(const float3 vTex)
 //--------------------------------------------------------------------------------------
 // Pixel Shader
 //--------------------------------------------------------------------------------------
-[numthreads(32, 16, 1)]
+[numthreads(32, 32, 1)]
 void main(uint3 DTid : SV_DispatchThreadID)
 {
 	float3 vPos = ScreenToLocal(float3(DTid.xy, 0.0));	// The point on the near plane
