@@ -49,7 +49,7 @@ void SurfaceVoxelizer::Init(const uint32_t uWidth, const uint32_t uHeight, const
 
 	m_uNumLevels = max(static_cast<uint32_t>(log2(GRID_SIZE)), 1);
 	m_pTxGrid = make_unique<Texture3D>(m_pDXDevice);
-	m_pTxGrid->Create(GRID_SIZE, GRID_SIZE, GRID_SIZE, DXGI_FORMAT_R10G10B10A2_UNORM, true, true, false, m_uNumLevels);
+	m_pTxGrid->Create(GRID_SIZE, GRID_SIZE, GRID_SIZE, DXGI_FORMAT_R16G16B16A16_FLOAT, true, true, false, m_uNumLevels);
 
 	// Viewport
 	m_VpSlice = CD3D11_VIEWPORT(0.0f, 0.0f, GRID_SIZE, GRID_SIZE);

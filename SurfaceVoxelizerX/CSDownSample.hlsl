@@ -13,9 +13,8 @@ groupshared min16float4	g_Block[2][2][2];
 [numthreads(2, 2, 2)]
 void main(uint3 DTid : SV_DispatchThreadID, uint3 GTid : SV_GroupThreadID, uint3 Gid : SV_GroupID)
 {
-	min16float4 vDataIn = g_RWGridIn[DTid];
-	vDataIn.xyz = vDataIn.xyz * 2.0 - 1.0;
-	g_Block[GTid.x][GTid.y][GTid.z] = min16float4(vDataIn.xyz * vDataIn.w, vDataIn.w);
+	g_Block[GTid.x][GTid.y][GTid.z] = g_RWGridIn[DTid];
+	//GroupMemoryBarrierWithGroupSync();
 
 	g_Block[GTid.x][GTid.y][GTid.z] = GTid.x ? g_Block[GTid.x][GTid.y][GTid.z] + g_Block[GTid.x - 1][GTid.y][GTid.z] : g_Block[GTid.x][GTid.y][GTid.z];
 	g_Block[GTid.x][GTid.y][GTid.z] = GTid.y ? g_Block[GTid.x][GTid.y][GTid.z] + g_Block[GTid.x][GTid.y - 1][GTid.z] : g_Block[GTid.x][GTid.y][GTid.z];
@@ -23,8 +22,7 @@ void main(uint3 DTid : SV_DispatchThreadID, uint3 GTid : SV_GroupThreadID, uint3
 
 	if (all(GTid))
 	{
-		min16float4 vDataOut = g_Block[GTid.x][GTid.y][GTid.z];
-		vDataOut.xyz = normalize(vDataOut.xyz);
-		g_RWGridOut[Gid] = min16float4(vDataOut.xyz * 0.5 + 0.5, vDataOut.w);
+		const min16float4 vDataOut = g_Block[GTid.x][GTid.y][GTid.z];
+		g_RWGridOut[Gid] = min16float4(vDataOut.xyz, saturate(vDataOut.w));
 	}
 }

@@ -22,8 +22,5 @@ void main(PSIn input)
 
 	if (input.Pos.x + 1.0 > vBound.x && input.Pos.y + 1.0 > vBound.y &&
 		input.Pos.x < vBound.z + 1.0 && input.Pos.y < vBound.w + 1.0)
-	{
-		const min16float3 vNorm = min16float3(normalize(input.Nrm));
-		g_RWGrid[vLoc] = min16float4(vNorm * 0.5 + 0.5, 1.0);
-	}
+		g_RWGrid[vLoc] = min16float4(normalize(input.Nrm), 1.0);
 }
