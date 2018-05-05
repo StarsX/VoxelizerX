@@ -23,11 +23,12 @@ VSOut main(const uint vID : SV_VertexID, const uint SliceID : SV_InstanceID)
 {
 	VSOut output;
 
-	const uint3 vLoc = { vID % GRID_SIZE, vID / GRID_SIZE, SliceID };
-	float3 vPos = (vLoc * 2 + 1) / (GRID_SIZE * 2.0);
+	const uint uGridSize = GRID_SIZE >> SHOW_MIP;
+	const uint3 vLoc = { vID % uGridSize, vID / uGridSize, SliceID };
+	float3 vPos = (vLoc * 2 + 1) / (uGridSize * 2.0);
 	vPos = vPos * float3(2.0, -2.0, 2.0) + float3(-1.0, 1.0, -1.0);
 
-	const min16float4 vGrid = g_txGrid[vLoc];
+	const min16float4 vGrid = g_txGrid.mips[SHOW_MIP][vLoc];
 
 	output.Pos = mul(float4(vPos, 1.0), g_mWorldViewProj);
 	output.Nrm = min16float4(mul(vGrid.xyz * 2.0 - 1.0, (float3x3)g_mWorldIT), vGrid.w);

@@ -4,8 +4,6 @@
 
 #include "SharedConst.h"
 
-#define	MIP_LEVEL	0
-
 struct VSOut
 {
 	float4		Pos	: SV_POSITION;
@@ -48,7 +46,7 @@ VSOut main(const uint vID : SV_VertexID, const uint InstID : SV_InstanceID)
 	float3 vPerBoxPos = float3(vPos2D.x, -vPos2D.y, 1.0);
 	vPerBoxPos = mul(vPerBoxPos, mPlane[planeID]);
 
-	const uint uGridSize = GRID_SIZE >> MIP_LEVEL;
+	const uint uGridSize = GRID_SIZE >> SHOW_MIP;
 	const uint uSliceSize = uGridSize * uGridSize;
 	const uint uPerSliceID = boxID % uSliceSize;
 	const uint3 vLoc = { uPerSliceID % uGridSize, uPerSliceID / uGridSize, boxID / uSliceSize };
@@ -56,7 +54,7 @@ VSOut main(const uint vID : SV_VertexID, const uint InstID : SV_InstanceID)
 	vPos = vPos * float3(2.0, -2.0, 2.0) + float3(-1.0, 1.0, -1.0);
 	vPos += vPerBoxPos / uGridSize;
 	
-	const min16float4 vGrid = g_txGrid.mips[MIP_LEVEL][vLoc];
+	const min16float4 vGrid = g_txGrid.mips[SHOW_MIP][vLoc];
 
 	output.Pos = mul(float4(vPos, 1.0), g_mWorldViewProj);
 	output.Nrm = min16float4(mul(mPlane[planeID][2], (float3x3)g_mWorldIT), vGrid.w);

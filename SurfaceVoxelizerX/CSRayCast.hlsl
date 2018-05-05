@@ -2,6 +2,8 @@
 // By XU, Tianchen
 //--------------------------------------------------------------------------------------
 
+#include "SharedConst.h"
+
 #define NUM_SAMPLES			128
 #define NUM_LIGHT_SAMPLES	32
 #define ABSORPTION			1.0
@@ -97,7 +99,7 @@ bool ComputeStartPoint(inout float3 vPos, const half3 vRayDir)
 //--------------------------------------------------------------------------------------
 min16float GetSample(const float3 vTex)
 {
-	return min(g_txGrid.SampleLevel(g_smpLinear, vTex, 0).w * 8.0, 16.0);
+	return min(g_txGrid.SampleLevel(g_smpLinear, vTex, SHOW_MIP).w * 8.0, 16.0);
 }
 
 //--------------------------------------------------------------------------------------

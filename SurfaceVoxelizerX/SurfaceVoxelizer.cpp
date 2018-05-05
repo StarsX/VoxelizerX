@@ -95,7 +95,7 @@ void SurfaceVoxelizer::UpdateFrame(DirectX::CXMVECTOR vEyePt, DirectX::CXMMATRIX
 
 void SurfaceVoxelizer::Render(const bool bTess)
 {
-	voxelize(bTess);
+	voxelizeSolid(bTess);
 
 	renderBoxArray();
 }
@@ -217,11 +217,13 @@ void SurfaceVoxelizer::voxelize(const bool bTess)
 
 void SurfaceVoxelizer::voxelizeSolid(const bool bTess)
 {
+	static auto t = 0u;
 	voxelize(bTess);
 
 	const auto uIter = m_uNumLevels - 1;
 	for (auto i = 0u; i < uIter; ++i) downSample(i);
-	for (auto i = uIter; i > 0; --i) fillSolid(i);
+	if (t >= 2) for (auto i = uIter; i > 0; --i) fillSolid(i);
+	t = (t + 1) % 4;
 }
 
 void SurfaceVoxelizer::downSample(const uint32_t i)
@@ -232,6 +234,7 @@ void SurfaceVoxelizer::downSample(const uint32_t i)
 	m_pDXContext->CSSetConstantBuffers(0, 1, m_pCBPerObject.GetAddressOf());
 
 	// Dispatch
+	m_pDXContext->ClearUnorderedAccessViewFloat(m_pTxGrid->GetUAV(i + 1).Get(), DirectX::Colors::Transparent);
 	m_pDXContext->CSSetShader(m_pShader->GetComputeShader(CS_DOWN_SAMPLE).Get(), nullptr, 0);
 	m_pDXContext->Dispatch(GRID_SIZE >> i >> 1, GRID_SIZE >> i >> 1, GRID_SIZE >> i >> 1);
 
@@ -259,6 +262,8 @@ void SurfaceVoxelizer::fillSolid(const uint32_t i)
 void SurfaceVoxelizer::renderPointArray()
 {
 	const auto uOffset = 0u;
+	const auto uGridSize = GRID_SIZE >> SHOW_MIP;
+
 	//const LPDXBuffer cbs[] = { m_pCBBound.Get(), m_pCBMatrices.Get() };
 	m_pDXContext->VSSetConstantBuffers(0, 1, m_pCBMatrices.GetAddressOf());
 
@@ -269,7 +274,7 @@ void SurfaceVoxelizer::renderPointArray()
 
 	m_pDXContext->VSSetShaderResources(0, 1, m_pTxGrid->GetSRV().GetAddressOf());
 
-	m_pDXContext->DrawInstanced(GRID_SIZE * GRID_SIZE, GRID_SIZE, 0, 0);
+	m_pDXContext->DrawInstanced(uGridSize * uGridSize, uGridSize, 0, 0);
 
 	m_pDXContext->VSSetShaderResources(0, 1, &g_pNullSRV);
 }
@@ -277,6 +282,8 @@ void SurfaceVoxelizer::renderPointArray()
 void SurfaceVoxelizer::renderBoxArray()
 {
 	const auto uOffset = 0u;
+	const auto uGridSize = GRID_SIZE >> SHOW_MIP;
+
 	m_pDXContext->VSSetConstantBuffers(0, 1, m_pCBMatrices.GetAddressOf());
 
 	m_pDXContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -286,7 +293,6 @@ void SurfaceVoxelizer::renderBoxArray()
 
 	m_pDXContext->VSSetShaderResources(0, 1, m_pTxGrid->GetSRV().GetAddressOf());
 
-	const auto uGridSize = GRID_SIZE >> 0;
 	m_pDXContext->DrawInstanced(4, 6 * uGridSize * uGridSize * uGridSize, 0, 0);
 
 	m_pDXContext->VSSetShaderResources(0, 1, &g_pNullSRV);
