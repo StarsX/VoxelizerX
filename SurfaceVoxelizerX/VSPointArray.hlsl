@@ -6,8 +6,9 @@
 
 struct VSOut
 {
-	float4		Pos	: SV_POSITION;
-	min16float4	Nrm	: NORMAL;
+	float4		Pos		: SV_POSITION;
+	min16float4	NrmMesh	: MESHNORMAL;
+	min16float3	NrmCube	: CUBENORMAL;
 };
 
 cbuffer cbMatrices
@@ -31,7 +32,8 @@ VSOut main(const uint vID : SV_VertexID, const uint SliceID : SV_InstanceID)
 	const min16float4 vGrid = g_txGrid.mips[SHOW_MIP][vLoc];
 
 	output.Pos = mul(float4(vPos, 1.0), g_mWorldViewProj);
-	output.Nrm = min16float4(mul(vGrid.xyz * 2.0 - 1.0, (float3x3)g_mWorldIT), vGrid.w);
+	output.NrmMesh = min16float4(mul(normalize(vGrid.xyz), (float3x3)g_mWorldIT), saturate(vGrid.w));
+	output.NrmCube = output.NrmMesh.xyz;
 
 	output.Pos.w = vGrid.w > 0.0 ? output.Pos.w : 0.0;
 

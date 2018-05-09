@@ -99,7 +99,7 @@ bool ComputeStartPoint(inout float3 vPos, const half3 vRayDir)
 //--------------------------------------------------------------------------------------
 min16float GetSample(const float3 vTex)
 {
-	return min(g_txGrid.SampleLevel(g_smpLinear, vTex, SHOW_MIP).w * 8.0, 16.0);
+	return min(saturate(g_txGrid.SampleLevel(g_smpLinear, vTex, SHOW_MIP).w) * 8.0, 16.0);
 }
 
 //--------------------------------------------------------------------------------------

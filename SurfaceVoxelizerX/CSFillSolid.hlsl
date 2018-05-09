@@ -2,10 +2,10 @@
 // By XU, Tianchen
 //--------------------------------------------------------------------------------------
 
-RWTexture3D<min16float4>		g_RWGridIn;
-RWTexture3D<unorm min16float4>	g_RWGridOut;
+RWTexture3D<min16float4>	g_RWGridIn;
+RWTexture3D<min16float4>	g_RWGridOut;
 
-groupshared min16float4			g_Bound[2][2][2];
+groupshared min16float4		g_Bound[2][2][2];
 
 //--------------------------------------------------------------------------------------
 // Down sampling

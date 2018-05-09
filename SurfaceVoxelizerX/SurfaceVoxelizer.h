@@ -102,6 +102,7 @@ protected:
 	XSDX::CPDXBuffer				m_pCBBound;
 
 	XSDX::upTexture3D				m_pTxGrid;
+	XSDX::upTexture3D				m_pTxMutex;
 
 	XSDX::spShader					m_pShader;
 	XSDX::spState					m_pState;
