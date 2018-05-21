@@ -24,6 +24,7 @@ void main(PSIn input)
 	for (uint i = 0; i < 0xffffffff; ++i)
 	{
 		InterlockedExchange(g_RWMutex[vLoc], 1, uLock);
+		DeviceMemoryBarrier();
 		if (uLock != 1)
 		{
 			// Critical section
