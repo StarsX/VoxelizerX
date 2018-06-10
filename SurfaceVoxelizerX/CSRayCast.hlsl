@@ -40,7 +40,7 @@ static const float g_fLStepScale = g_fMaxDist / NUM_LIGHT_SAMPLES;
 //--------------------------------------------------------------------------------------
 // Textures
 //--------------------------------------------------------------------------------------
-Texture3D<min16float4>		g_txGrid	: register (t0);
+Texture3D<min16float>		g_txGrid	: register (t0);
 
 //--------------------------------------------------------------------------------------
 // RW textures
@@ -99,7 +99,7 @@ bool ComputeStartPoint(inout float3 vPos, const half3 vRayDir)
 //--------------------------------------------------------------------------------------
 min16float GetSample(const float3 vTex)
 {
-	return min(saturate(g_txGrid.SampleLevel(g_smpLinear, vTex, SHOW_MIP).w) * 8.0, 16.0);
+	return min(g_txGrid.SampleLevel(g_smpLinear, vTex, SHOW_MIP) * 8.0, 16.0);
 }
 
 //--------------------------------------------------------------------------------------

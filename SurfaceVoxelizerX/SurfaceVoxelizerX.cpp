@@ -122,7 +122,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
 	auto deviceSettings = DXUTDeviceSettings();
 	DXUTApplyDefaultDeviceSettings(&deviceSettings);
-	deviceSettings.MinimumFeatureLevel = D3D_FEATURE_LEVEL_11_1;
+	deviceSettings.MinimumFeatureLevel = D3D_FEATURE_LEVEL_11_0;
 	deviceSettings.d3d11.AutoCreateDepthStencil = true;
 	// UAV cannot be DXGI_FORMAT_R8G8B8A8_UNORM_SRGB
 	deviceSettings.d3d11.sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -336,7 +336,7 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, const DXGI_SURFAC
 	auto loadCSTask = g_pShader->CreateComputeShader(L"CSDownSample.cso", SurfaceVoxelizer::CS_DOWN_SAMPLE);
 	loadCSTask = loadCSTask && g_pShader->CreateComputeShader(L"CSFillSolid.cso", SurfaceVoxelizer::CS_FILL_SOLID);
 	loadCSTask = loadCSTask && g_pShader->CreateComputeShader(L"CSRayCast.cso", SurfaceVoxelizer::CS_RAY_CAST);
-	
+
 	const auto createShaderTask = loadVSTask && loadHSTask && loadDSTask && loadPSTask && loadCSTask;
 
 	// Once the mesh is loaded, the object is ready to be rendered.

@@ -2,10 +2,10 @@
 // By XU, Tianchen
 //--------------------------------------------------------------------------------------
 
-RWTexture3D<min16float4>	g_RWGridIn;
-RWTexture3D<min16float4>	g_RWGridOut;
+RWTexture3D<min16float>	g_RWGridIn[3];
+RWTexture3D<min16float>	g_RWGridOut[3];
 
-groupshared min16float4		g_Block[2][2][2];
+groupshared min16float3	g_Block[2][2][2];
 
 //--------------------------------------------------------------------------------------
 // Down sampling
@@ -13,8 +13,10 @@ groupshared min16float4		g_Block[2][2][2];
 [numthreads(2, 2, 2)]
 void main(uint3 DTid : SV_DispatchThreadID, uint3 GTid : SV_GroupThreadID, uint3 Gid : SV_GroupID)
 {
-	g_Block[GTid.x][GTid.y][GTid.z] = g_RWGridIn[DTid];
-	GroupMemoryBarrierWithGroupSync();
+	g_Block[GTid.x][GTid.y][GTid.z].x = g_RWGridIn[0][DTid];
+	g_Block[GTid.x][GTid.y][GTid.z].y = g_RWGridIn[1][DTid];
+	g_Block[GTid.x][GTid.y][GTid.z].z = g_RWGridIn[2][DTid];
+	//GroupMemoryBarrierWithGroupSync();
 
 	g_Block[GTid.x][GTid.y][GTid.z] = GTid.x ? g_Block[GTid.x][GTid.y][GTid.z] + g_Block[GTid.x - 1][GTid.y][GTid.z] : g_Block[GTid.x][GTid.y][GTid.z];
 	g_Block[GTid.x][GTid.y][GTid.z] = GTid.y ? g_Block[GTid.x][GTid.y][GTid.z] + g_Block[GTid.x][GTid.y - 1][GTid.z] : g_Block[GTid.x][GTid.y][GTid.z];
@@ -22,7 +24,9 @@ void main(uint3 DTid : SV_DispatchThreadID, uint3 GTid : SV_GroupThreadID, uint3
 
 	if (all(GTid))
 	{
-		const min16float4 vDataOut = g_Block[GTid.x][GTid.y][GTid.z];
-		g_RWGridOut[Gid] = min16float4(vDataOut.xyz, saturate(vDataOut.w));
+		const min16float3 vDataOut = g_Block[GTid.x][GTid.y][GTid.z];
+		g_RWGridOut[0][Gid] = vDataOut.x;
+		g_RWGridOut[1][Gid] = vDataOut.y;
+		g_RWGridOut[2][Gid] = vDataOut.z;
 	}
 }

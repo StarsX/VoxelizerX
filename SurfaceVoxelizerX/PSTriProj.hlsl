@@ -12,12 +12,14 @@ struct PSIn
 	float3	TexLoc	: TEXLOCATION;
 };
 
-RWTexture3D<min16float4>	g_RWGrid;
-RWTexture3D<uint>			g_RWMutex;
+globallycoherent
+RWTexture3D<min16float>	g_RWGrids[4];
+RWTexture3D<uint>		g_RWMutex;
 
 void main(PSIn input)
 {
 	const uint3 vLoc = input.TexLoc * GRID_SIZE;
+	const min16float3 vNorm = min16float3(normalize(input.Nrm));
 
 	uint uLock;
 	[allow_uav_condition]
@@ -28,7 +30,13 @@ void main(PSIn input)
 		if (uLock != 1)
 		{
 			// Critical section
-			g_RWGrid[vLoc] += min16float4(normalize(input.Nrm), 1.0);
+			{
+				g_RWGrids[0][vLoc] += vNorm.x;
+				g_RWGrids[1][vLoc] += vNorm.y;
+				g_RWGrids[2][vLoc] += vNorm.z;
+				g_RWGrids[3][vLoc] = 1.0;
+			}
+
 			g_RWMutex[vLoc] = 0;
 			break;
 		}
