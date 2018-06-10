@@ -13,14 +13,19 @@ struct PSIn
 	float4	Bound	: AABB;
 };
 
+cbuffer cbPerMipLevel
+{
+	float g_fGridSize;
+};
+
 globallycoherent
 RWTexture3D<min16float>	g_RWGrids[4];
 RWTexture3D<uint>		g_RWMutex;
 
 void main(PSIn input)
 {
-	const uint3 vLoc = input.TexLoc * GRID_SIZE;
-	const float4 vBound = input.Bound * GRID_SIZE;
+	const uint3 vLoc = input.TexLoc * g_fGridSize;
+	const float4 vBound = input.Bound * g_fGridSize;
 
 	const min16float3 vNorm = min16float3(normalize(input.Nrm));
 	const bool bWrite = input.Pos.x + 1.0 > vBound.x && input.Pos.y + 1.0 > vBound.y &&

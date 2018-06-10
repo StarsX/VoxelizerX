@@ -31,6 +31,11 @@ struct HSConstDataOut
 	float InsideTessFactor	: SV_InsideTessFactor;	// e.g. would be Inside[2] for a quad domain
 };
 
+cbuffer cbPerMipLevel
+{
+	float g_fGridSize;
+};
+
 [domain("tri")]
 DSOut main(HSConstDataOut input,
 	float3 domain : SV_DomainLocation,
@@ -41,7 +46,7 @@ DSOut main(HSConstDataOut input,
 	// Distance to centroid in rasterizer space
 	const float2 vVertex = patch[0].Pos * domain.x + patch[1].Pos * domain.y + patch[2].Pos * domain.z;
 	const float2 vCentroid = (patch[0].Pos + patch[1].Pos + patch[2].Pos) / 3.0;
-	const float fDistance = distance(vVertex, vCentroid) * GRID_SIZE * 0.5;
+	const float fDistance = distance(vVertex, vCentroid) * g_fGridSize * 0.5;
 
 	// Change domain location with offset for extrapolation
 	const float3 f1PixelOffset = (domain - 1.0 / 3.0) / fDistance;

@@ -2,7 +2,7 @@
 // By XU, Tianchen
 //--------------------------------------------------------------------------------------
 
-RWTexture3D<min16float>	g_RWGridIn[4];
+RWTexture3D<min16float>	g_RWGridIn[3];
 RWTexture3D<min16float>	g_RWGridOut[4];
 
 groupshared min16float4	g_Bound[2][2][2];
@@ -17,17 +17,17 @@ void main(uint3 DTid : SV_DispatchThreadID, uint3 GTid : SV_GroupThreadID, uint3
 	vDataIn.x = g_RWGridIn[0][Gid];
 	vDataIn.y = g_RWGridIn[1][Gid];
 	vDataIn.z = g_RWGridIn[2][Gid];
-	vDataIn.w = g_RWGridIn[3][Gid];
+	vDataIn.w = abs(vDataIn.x) + abs(vDataIn.y) + abs(vDataIn.z) > 0.0 ? 1.0 : 0.0;
 	
 	min16float4 vData;
 	vData.x = g_RWGridOut[0][DTid];
 	vData.y = g_RWGridOut[1][DTid];
 	vData.z = g_RWGridOut[2][DTid];
-	vData.w = g_RWGridOut[3][DTid];
+	vData.w = abs(vData.x) + abs(vData.y) + abs(vData.z) > 0.0 ? 1.0 : 0.0;
 
 	g_Bound[GTid.x][GTid.y][GTid.z] = vData;
 	GroupMemoryBarrierWithGroupSync();
-		
+
 	if (vDataIn.w > 0.0 && vData.w <= 0.0)
 	{
 		//const min16float3 vNorm = normalize(vDataIn.xyz);

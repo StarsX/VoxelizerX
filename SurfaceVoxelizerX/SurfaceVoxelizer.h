@@ -75,7 +75,7 @@ protected:
 	void createVB(const uint32_t uNumVert, const uint32_t uStride, const uint8_t *pData);
 	void createIB(const uint32_t uNumIndices, const uint32_t *pData);
 	void createCBs();
-	void voxelize(const bool bTess);
+	void voxelize(const bool bTess, const uint8_t uMip = 0);
 	void voxelizeSolid(const bool bTess);
 	void downSample(const uint32_t i);
 	void fillSolid(const uint32_t i);
@@ -92,14 +92,13 @@ protected:
 	DirectX::XMFLOAT4				m_vBound;
 	DirectX::XMFLOAT2				m_vViewport;
 
-	D3D11_VIEWPORT					m_VpSlice;
-
 	XSDX::CPDXBuffer				m_pVB;
 	XSDX::CPDXBuffer				m_pIB;
 	XSDX::CPDXBuffer				m_pCBMatrices;
 	XSDX::CPDXBuffer				m_pCBPerFrame;
 	XSDX::CPDXBuffer				m_pCBPerObject;
 	XSDX::CPDXBuffer				m_pCBBound;
+	XSDX::vCPDXBuffer				m_vpCBPerMipLevels;
 
 	XSDX::upTexture3D				m_pTxGrids[4];
 	XSDX::upTexture3D				m_pTxMutex;
