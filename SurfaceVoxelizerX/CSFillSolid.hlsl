@@ -17,20 +17,20 @@ void main(uint3 DTid : SV_DispatchThreadID, uint3 GTid : SV_GroupThreadID, uint3
 	vDataIn.x = g_RWGridIn[0][Gid];
 	vDataIn.y = g_RWGridIn[1][Gid];
 	vDataIn.z = g_RWGridIn[2][Gid];
-	vDataIn.w = abs(vDataIn.x) + abs(vDataIn.y) + abs(vDataIn.z) > 0.0 ? 1.0 : 0.0;
+	vDataIn.w = any(vDataIn.xyz) ? 1.0 : 0.0;
 	
 	min16float4 vData;
 	vData.x = g_RWGridOut[0][DTid];
 	vData.y = g_RWGridOut[1][DTid];
 	vData.z = g_RWGridOut[2][DTid];
-	vData.w = abs(vData.x) + abs(vData.y) + abs(vData.z) > 0.0 ? 1.0 : 0.0;
+	vData.w = any(vData.xyz) ? 1.0 : 0.0;
 
 	g_Bound[GTid.x][GTid.y][GTid.z] = vData;
 	GroupMemoryBarrierWithGroupSync();
 
 	if (vDataIn.w > 0.0 && vData.w <= 0.0)
 	{
-		//const min16float3 vNorm = normalize(vDataIn.xyz);
+		//const min16float3 vNormAvg = normalize(vDataIn.xyz);
 		bool bWrite = true;
 
 		for (uint i = 0; i < 2 && bWrite; ++i)

@@ -300,7 +300,7 @@ void SurfaceVoxelizer::fillSolid(const uint32_t i)
 	m_pDXContext->CSSetUnorderedAccessViews(0, static_cast<uint32_t>(vpUAVs.size()), vpUAVs.data(), &g_uNullUint);
 
 	// Dispatch
-	const auto uGroupCount = static_cast<uint32_t>(GRID_SIZE >> i >> 1);
+	const auto uGroupCount = static_cast<uint32_t>(GRID_SIZE >> i);
 	m_pDXContext->CSSetShader(m_pShader->GetComputeShader(CS_FILL_SOLID).Get(), nullptr, 0);
 	m_pDXContext->Dispatch(uGroupCount, uGroupCount, uGroupCount);
 

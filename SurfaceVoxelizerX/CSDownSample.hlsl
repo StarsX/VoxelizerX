@@ -17,7 +17,7 @@ void main(uint3 DTid : SV_DispatchThreadID, uint3 GTid : SV_GroupThreadID, uint3
 	vDataIn.x = g_RWGridIn[0][DTid];
 	vDataIn.y = g_RWGridIn[1][DTid];
 	vDataIn.z = g_RWGridIn[2][DTid];
-	vDataIn.w = abs(vDataIn.x) + abs(vDataIn.y) + abs(vDataIn.z) > 0.0 ? 1.0 : 0.0;
+	vDataIn.w = any(vDataIn.xyz) ? 1.0 : 0.0;
 	g_Block[GTid.x][GTid.y][GTid.z] = vDataIn;
 	GroupMemoryBarrierWithGroupSync();
 
