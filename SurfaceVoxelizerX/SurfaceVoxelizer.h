@@ -2,7 +2,7 @@
 
 #include "XSDXShader.h"
 #include "XSDXState.h"
-#include "XSDXBuffer.h"
+#include "XSDXResource.h"
 
 class SurfaceVoxelizer
 {

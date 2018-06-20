@@ -186,7 +186,7 @@ COPY /Y "$(OutDir)*.exe" "$(ProjectDir)..\Bin\"</Command>
     <ClInclude Include="SurfaceVoxelizer.h" />
     <ClInclude Include="SurfaceVoxelizerX.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="XSDX\XSDXBuffer.h" />
+    <ClInclude Include="XSDX\XSDXResource.h" />
     <ClInclude Include="XSDX\XSDXShader.h" />
     <ClInclude Include="XSDX\XSDXShaderCommon.h" />
     <ClInclude Include="XSDX\XSDXSharedConst.h" />
@@ -218,7 +218,7 @@ COPY /Y "$(OutDir)*.exe" "$(ProjectDir)..\Bin\"</Command>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdafx.h</ForcedIncludeFiles>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdafx.h</ForcedIncludeFiles>
     </ClCompile>
-    <ClCompile Include="XSDX\XSDXBuffer.cpp">
+    <ClCompile Include="XSDX\XSDXResource.cpp">
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdafx.h</ForcedIncludeFiles>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">stdafx.h</ForcedIncludeFiles>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdafx.h</ForcedIncludeFiles>
