@@ -53,9 +53,11 @@ void SurfaceVoxelizer::Init(const uint32_t uWidth, const uint32_t uHeight, const
 	{
 		m_pTxGrids[i] = make_unique<Texture3D>(m_pDXDevice);
 		m_pTxGrids[i]->Create(GRID_SIZE, GRID_SIZE, GRID_SIZE, DXGI_FORMAT_R32_FLOAT, true, true, false, m_uNumLevels);
+		m_pTxGrids[i]->CreateSubSRVs();
 	}
 	m_pTxGrids[3] = make_unique<Texture3D>(m_pDXDevice);
 	m_pTxGrids[3]->Create(GRID_SIZE, GRID_SIZE, GRID_SIZE, DXGI_FORMAT_R8_UNORM, true, true, false, m_uNumLevels);
+	m_pTxGrids[3]->CreateSubSRVs();
 
 	m_pTxMutex = make_unique<Texture3D>(m_pDXDevice);
 	m_pTxMutex->Create(GRID_SIZE, GRID_SIZE, GRID_SIZE, DXGI_FORMAT_R32_UINT);
@@ -253,8 +255,10 @@ void SurfaceVoxelizer::voxelizeSolid(const bool bTess)
 	const auto uIter = m_uNumLevels - 1;
 	//for (auto i = 0u; i < m_uNumLevels; ++i) voxelize(bTess, i);
 	for (auto i = 0u; i < uIter; ++i) downSample(i);
-	if (t >= 128) for (auto i = uIter; i > 0; --i) fillSolid(i);
+	//if (t >= 128)
+		for (auto i = uIter; i > 0; --i) fillSolid(i);
 	t = (t + 1) % 256;
+	//fillSolid(0);
 }
 
 void SurfaceVoxelizer::downSample(const uint32_t i)
@@ -262,16 +266,29 @@ void SurfaceVoxelizer::downSample(const uint32_t i)
 	// Setup
 	auto vpUAVs = vLPDXUAV
 	{
+#if	!USING_SRV
 		m_pTxGrids[0]->GetUAV(i).Get(),
 		m_pTxGrids[1]->GetUAV(i).Get(),
 		m_pTxGrids[2]->GetUAV(i).Get(),
+#endif
 		m_pTxGrids[0]->GetUAV(i + 1).Get(),
 		m_pTxGrids[1]->GetUAV(i + 1).Get(),
 		m_pTxGrids[2]->GetUAV(i + 1).Get(),
-		m_pTxGrids[3]->GetUAV(i + 1).Get(),
+		m_pTxGrids[3]->GetUAV(i + 1).Get()
 	};
 	m_pDXContext->CSSetUnorderedAccessViews(0, static_cast<uint32_t>(vpUAVs.size()), vpUAVs.data(), &g_uNullUint);
 
+#if	USING_SRV
+	auto vpSRVs = vLPDXSRV
+	{
+		m_pTxGrids[0]->GetSRVLevel(i).Get(),
+		m_pTxGrids[1]->GetSRVLevel(i).Get(),
+		m_pTxGrids[2]->GetSRVLevel(i).Get(),
+		m_pTxGrids[3]->GetSRVLevel(i).Get()
+	};
+	m_pDXContext->CSSetShaderResources(0, static_cast<uint32_t>(vpSRVs.size()), vpSRVs.data());
+#endif
+	
 	// Dispatch
 	const auto uGroupCount = static_cast<uint32_t>(GRID_SIZE >> i >> 1);
 	for (const auto &pTxGrid : m_pTxGrids)
@@ -280,6 +297,10 @@ void SurfaceVoxelizer::downSample(const uint32_t i)
 	m_pDXContext->Dispatch(uGroupCount, uGroupCount, uGroupCount);
 
 	// Unset
+#if USING_SRV
+	vpSRVs = vLPDXSRV(vpSRVs.size(), nullptr);
+	m_pDXContext->CSSetShaderResources(0, static_cast<uint32_t>(vpSRVs.size()), vpSRVs.data());
+#endif
 	vpUAVs = vLPDXUAV(vpUAVs.size(), nullptr);
 	m_pDXContext->CSSetUnorderedAccessViews(0, static_cast<uint32_t>(vpUAVs.size()), vpUAVs.data(), &g_uNullUint);
 }
@@ -289,22 +310,44 @@ void SurfaceVoxelizer::fillSolid(const uint32_t i)
 	// Setup
 	auto vpUAVs = vLPDXUAV
 	{
+#if	USING_SRV
+		m_pTxGrids[0]->GetUAV().Get(),
+		m_pTxGrids[1]->GetUAV().Get(),
+		m_pTxGrids[2]->GetUAV().Get(),
+		m_pTxGrids[3]->GetUAV().Get()
+#else
 		m_pTxGrids[0]->GetUAV(i).Get(),
 		m_pTxGrids[1]->GetUAV(i).Get(),
 		m_pTxGrids[2]->GetUAV(i).Get(),
 		m_pTxGrids[0]->GetUAV(i - 1).Get(),
 		m_pTxGrids[1]->GetUAV(i - 1).Get(),
 		m_pTxGrids[2]->GetUAV(i - 1).Get(),
-		m_pTxGrids[3]->GetUAV(i - 1).Get(),
+		m_pTxGrids[3]->GetUAV(i - 1).Get()
+#endif
 	};
 	m_pDXContext->CSSetUnorderedAccessViews(0, static_cast<uint32_t>(vpUAVs.size()), vpUAVs.data(), &g_uNullUint);
 
+#if	USING_SRV
+	auto vpSRVs = vLPDXSRV
+	{
+		m_pTxGrids[0]->GetSubSRV(1).Get(),
+		m_pTxGrids[1]->GetSubSRV(1).Get(),
+		m_pTxGrids[2]->GetSubSRV(1).Get(),
+		m_pTxGrids[3]->GetSubSRV(1).Get()
+	};
+	m_pDXContext->CSSetShaderResources(0, static_cast<uint32_t>(vpSRVs.size()), vpSRVs.data());
+#endif
+
 	// Dispatch
-	const auto uGroupCount = static_cast<uint32_t>(GRID_SIZE >> i);
+	const auto uGroupCount = static_cast<uint32_t>(GRID_SIZE >> 1);//static_cast<uint32_t>(GRID_SIZE >> i);
 	m_pDXContext->CSSetShader(m_pShader->GetComputeShader(CS_FILL_SOLID).Get(), nullptr, 0);
 	m_pDXContext->Dispatch(uGroupCount, uGroupCount, uGroupCount);
 
 	// Unset
+#if USING_SRV
+	vpSRVs = vLPDXSRV(vpSRVs.size(), nullptr);
+	m_pDXContext->CSSetShaderResources(0, static_cast<uint32_t>(vpSRVs.size()), vpSRVs.data());
+#endif
 	vpUAVs = vLPDXUAV(vpUAVs.size(), nullptr);
 	m_pDXContext->CSSetUnorderedAccessViews(0, static_cast<uint32_t>(vpUAVs.size()), vpUAVs.data(), &g_uNullUint);
 }
@@ -374,7 +417,7 @@ void SurfaceVoxelizer::renderRayCast(const CPDXUnorderedAccessView &pUAVSwapChai
 	// Setup
 	m_pDXContext->CSSetUnorderedAccessViews(0, 1, pUAVSwapChain.GetAddressOf(), &g_uNullUint);
 	m_pDXContext->CSSetShaderResources(0, 1, m_pTxGrids[3]->GetSRV().GetAddressOf());
-	//m_pDXContext->CSSetSamplers(0, 1, m_pState->LinearClamp().GetAddressOf());
+	m_pDXContext->CSSetSamplers(0, 1, m_pState->LinearClamp().GetAddressOf());
 	m_pDXContext->CSSetConstantBuffers(0, 1, m_pCBPerObject.GetAddressOf());
 
 	// Dispatch
