@@ -130,6 +130,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	deviceSettings.d3d11.sd.BufferDesc.Height = 960;
 	deviceSettings.d3d11.sd.Windowed = true;
 	deviceSettings.d3d11.sd.BufferUsage |= DXGI_USAGE_UNORDERED_ACCESS;
+	//deviceSettings.d3d11.DriverType = D3D_DRIVER_TYPE_WARP;
 
 	DXUTCreateDeviceFromSettings(&deviceSettings);
 	//DXUTCreateDevice(D3D_FEATURE_LEVEL_11_0, true, 1280, 960);

@@ -568,7 +568,7 @@ void RawBuffer::Create(const uint32_t uByteWidth, const bool bVB, const bool bSO
 
 	if (pInitialData)
 	{
-		const auto bufferInitData = D3D11_SUBRESOURCE_DATA{ pInitialData, 0, 0 };
+		const auto bufferInitData = D3D11_SUBRESOURCE_DATA{ pInitialData };
 		ThrowIfFailed(m_pDXDevice->CreateBuffer(&bufferDesc, &bufferInitData, &m_pBuffer));
 	}
 	else ThrowIfFailed(m_pDXDevice->CreateBuffer(&bufferDesc, nullptr, &m_pBuffer));
