@@ -72,6 +72,16 @@ protected:
 		DirectX::XMMATRIX mScreenToLocal;
 	};
 
+	struct upTexture3Ds
+	{
+		using ppTexture3D = std::add_pointer_t<XSDX::upTexture3D>;
+		XSDX::upTexture3D x;
+		XSDX::upTexture3D y;
+		XSDX::upTexture3D z;
+		XSDX::upTexture3D w;
+		ppTexture3D array = &x;
+	};
+
 	void createVB(const uint32_t uNumVert, const uint32_t uStride, const uint8_t *pData);
 	void createIB(const uint32_t uNumIndices, const uint32_t *pData);
 	void createCBs();
@@ -92,15 +102,17 @@ protected:
 	DirectX::XMFLOAT4				m_vBound;
 	DirectX::XMFLOAT2				m_vViewport;
 
-	XSDX::CPDXBuffer				m_pVB;
-	XSDX::CPDXBuffer				m_pIB;
+	XSDX::upRawBuffer				m_pVB;
+	XSDX::upRawBuffer				m_pIB;
 	XSDX::CPDXBuffer				m_pCBMatrices;
 	XSDX::CPDXBuffer				m_pCBPerFrame;
 	XSDX::CPDXBuffer				m_pCBPerObject;
 	XSDX::CPDXBuffer				m_pCBBound;
 	XSDX::vCPDXBuffer				m_vpCBPerMipLevels;
 
-	XSDX::upTexture3D				m_pTxGrids[4];
+	XSDX::upStructuredBuffer		m_pVBTransformed;
+
+	upTexture3Ds					m_pTxGrids;
 	XSDX::upTexture3D				m_pTxMutex;
 
 	XSDX::spShader					m_pShader;
