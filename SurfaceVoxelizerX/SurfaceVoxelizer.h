@@ -11,6 +11,13 @@
 class SurfaceVoxelizer
 {
 public:
+	enum Method
+	{
+		TRI_PROJ_TESS,
+		TRI_PROJ_COMP,
+		TRI_PROJ_UNION
+	};
+
 	enum VertexShaderID		: uint32_t
 	{
 		VS_TRI_PROJ_TESS,
@@ -50,8 +57,8 @@ public:
 
 	void Init(const uint32_t uWidth, const uint32_t uHeight, const char *szFileName = "Media\\bunny.obj");
 	void UpdateFrame(DirectX::CXMVECTOR vEyePt, DirectX::CXMMATRIX mViewProj);
-	void Render(const bool bTess = true);
-	void Render(const XSDX::CPDXUnorderedAccessView &pUAVSwapChain, const bool bTess = true);
+	void Render(const Method eVoxMethod = TRI_PROJ_TESS);
+	void Render(const XSDX::CPDXUnorderedAccessView &pUAVSwapChain, const Method eVoxMethod = TRI_PROJ_TESS);
 
 	static void CreateVertexLayout(const XSDX::CPDXDevice &pDXDevice, XSDX::CPDXInputLayout &pVertexLayout,
 		const XSDX::spShader &pShader, const uint8_t uVS);
@@ -101,7 +108,8 @@ protected:
 	void createIB(const uint32_t uNumIndices, const uint32_t *pData);
 	void createCBs();
 	void voxelize(const bool bTess, const uint8_t uMip = 0);
-	void voxelizeSolid(const bool bTess);
+	void voxelizeCS(const uint8_t uMip = 0);
+	void voxelizeSolid(const Method eVoxMethod);
 	void downSample(const uint32_t i);
 	void fillSolid(const uint32_t i);
 	void renderPointArray();

@@ -6,7 +6,7 @@
 
 struct VSIn
 {
-	float2	Pos	;
+	float2	Pos;
 	float3	PosLoc;
 	float3	Nrm;
 	float3	TexLoc;
@@ -22,15 +22,13 @@ struct VSOut
 	float4	Bound	: AABB;
 };
 
-ByteAddressBuffer g_roIndices;
 StructuredBuffer<VSIn> g_roVertices;
 
 VSOut main(uint vid : SV_VertexID)
 {
 	VSOut output;
 
-	const uint uVid = g_roIndices.Load(SIZE_OF_UINT * vid);
-	VSIn input = g_roVertices[uVid];
+	VSIn input = g_roVertices[vid];
 	output.Pos = float4(input.Pos, 0.5, 1.0);
 	output.PosLoc = input.PosLoc;
 	output.Nrm = input.Nrm;

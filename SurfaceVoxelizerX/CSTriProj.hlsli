@@ -5,13 +5,6 @@
 #define CONSERVATION_AMT	1.0 / 3.0	// Measured by pixels, e.g. 1.0 / 3.0 means 1/3 pixel size
 #define NUM_CONTROL_POINTS	3
 
-struct VSOut
-{
-	float3	Pos;
-	float3	PosLoc;
-	float3	Nrm;
-};
-
 struct HSOut
 {
 	float2	Pos;

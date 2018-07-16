@@ -28,7 +28,6 @@ auto							g_bShowHelp = false;		// If true, it renders the UI control text
 auto							g_bShowFPS = true;			// If true, it shows the FPS
 auto							g_bLoadingComplete = false;
 
-auto							g_bVoxelTess = true;
 auto							g_bRayCast = false;
 
 upCDXUTTextHelper				g_pTxtHelper;
@@ -40,6 +39,8 @@ spState							g_pState;
 
 IDXGISwapChain*					g_pSwapChain = nullptr;
 
+SurfaceVoxelizer::Method		g_eVoxMethod = SurfaceVoxelizer::TRI_PROJ_TESS;
+
 //--------------------------------------------------------------------------------------
 // UI control IDs
 //--------------------------------------------------------------------------------------
@@ -50,7 +51,8 @@ enum ButtonID
 	IDC_CHANGEDEVICE,
 	IDC_TOGGLEWARP,
 	IDC_TRI_PROJ_TESS = 5,
-	IDC_TRI_PROJ,
+	IDC_TRI_PROJ_COMP,
+	IDC_TRI_PROJ_UNION,
 	IDC_BOX_ARRAY,
 	IDC_RAY_CAST
 };
@@ -154,7 +156,8 @@ void InitApp()
 	auto iX = -240;
 	auto iY = -670;
 	g_SampleUI.AddRadioButton(IDC_TRI_PROJ_TESS, 0, L"Tessellation for AAP view of max projected area", iX, iY += 26, 150, 22);
-	g_SampleUI.AddRadioButton(IDC_TRI_PROJ, 0, L"Union of 3 axis-aligned projection (AAP) views", iX, iY += 26, 150, 22);
+	g_SampleUI.AddRadioButton(IDC_TRI_PROJ_COMP, 0, L"Compute for AAP view of max projected area", iX, iY += 26, 150, 22);
+	g_SampleUI.AddRadioButton(IDC_TRI_PROJ_UNION, 0, L"Union of 3 axis-aligned projection (AAP) views", iX, iY += 26, 150, 22);
 	g_SampleUI.GetRadioButton(IDC_TRI_PROJ_TESS)->SetChecked(true);
 	g_SampleUI.AddRadioButton(IDC_BOX_ARRAY, 1, L"Render surface voxels as box array", iX, iY += 36, 150, 22);
 	g_SampleUI.AddRadioButton(IDC_RAY_CAST, 1, L"Render solid voxels with raycasting", iX, iY += 26, 150, 22);
@@ -278,10 +281,13 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, vo
 	{
 		// Standard DXUT controls
 	case IDC_TRI_PROJ_TESS:
-		g_bVoxelTess = true;
+		g_eVoxMethod = SurfaceVoxelizer::TRI_PROJ_TESS;
 		break;
-	case IDC_TRI_PROJ:
-		g_bVoxelTess = false;
+	case IDC_TRI_PROJ_COMP:
+		g_eVoxMethod = SurfaceVoxelizer::TRI_PROJ_COMP;
+		break;
+	case IDC_TRI_PROJ_UNION:
+		g_eVoxMethod = SurfaceVoxelizer::TRI_PROJ_UNION;
 		break;
 	case IDC_BOX_ARRAY:
 		g_bRayCast = false;
@@ -444,10 +450,10 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	if (g_bRayCast)
 	{
 		pd3dImmediateContext->OMSetRenderTargets(0, nullptr, nullptr);
-		g_pSurfaceVoxelizer->Render(pUAVSwapChain, g_bVoxelTess);
+		g_pSurfaceVoxelizer->Render(pUAVSwapChain, g_eVoxMethod);
 		pd3dImmediateContext->OMSetRenderTargets(1, pRTVs, nullptr);
 	}
-	else g_pSurfaceVoxelizer->Render(g_bVoxelTess);
+	else g_pSurfaceVoxelizer->Render(g_eVoxMethod);
 
 	DXUT_BeginPerfEvent(DXUT_PERFEVENTCOLOR, L"HUD / Stats");
 	g_SampleUI.OnRender(fElapsedTime);

@@ -43,7 +43,7 @@ void SurfaceVoxelizer::Init(const uint32_t uWidth, const uint32_t uHeight, const
 	createIB(objLoader.GetNumIndices(), objLoader.GetIndices());
 
 	m_pVBTransformed = make_unique<StructuredBuffer>(m_pDXDevice);
-	m_pVBTransformed->Create(objLoader.GetNumVertices(), sizeof(TransformedVertex),
+	m_pVBTransformed->Create(objLoader.GetNumIndices(), sizeof(TransformedVertex),
 		D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
 
 	// Extract boundary
@@ -107,17 +107,26 @@ void SurfaceVoxelizer::UpdateFrame(DirectX::CXMVECTOR vEyePt, DirectX::CXMMATRIX
 	if (m_pCBPerObject) m_pDXContext->UpdateSubresource(m_pCBPerObject.Get(), 0, nullptr, &cbPerObject, 0, 0);
 }
 
-void SurfaceVoxelizer::Render(const bool bTess)
+void SurfaceVoxelizer::Render(const Method eVoxMethod)
 {
-	voxelize(bTess);
-	//voxelizeSolid(bTess);
+	switch (eVoxMethod)
+	{
+	case TRI_PROJ_COMP:
+		voxelizeCS();
+		break;
+	case TRI_PROJ_UNION:
+		voxelize(false);
+		break;
+	default:
+		voxelize(true);
+	}
 
 	renderBoxArray();
 }
 
-void SurfaceVoxelizer::Render(const CPDXUnorderedAccessView &pUAVSwapChain, const bool bTess)
+void SurfaceVoxelizer::Render(const CPDXUnorderedAccessView &pUAVSwapChain, const Method eVoxMethod)
 {
-	voxelizeSolid(bTess);
+	voxelizeSolid(eVoxMethod);
 	//voxelize(bTess);
 
 	renderRayCast(pUAVSwapChain);
@@ -249,10 +258,85 @@ void SurfaceVoxelizer::voxelize(const bool bTess, const uint8_t uMip)
 	m_pDXContext->OMSetRenderTargets(1, pRTV.GetAddressOf(), pDSV.Get());
 }
 
-void SurfaceVoxelizer::voxelizeSolid(const bool bTess)
+void SurfaceVoxelizer::voxelizeCS(const uint8_t uMip)
+{
+	// Compute pass
+	const auto pSRVs = { m_pIB->GetSRV().Get(), m_pVB->GetSRV().Get() };
+	const auto pCBs = { m_pCBBound.Get(), m_vpCBPerMipLevels[uMip].Get() };
+	m_pDXContext->CSSetUnorderedAccessViews(0, 1, m_pVBTransformed->GetUAV().GetAddressOf(), &g_uNullUint);
+	m_pDXContext->CSSetShaderResources(0, static_cast<uint32_t>(pSRVs.size()), pSRVs.begin());
+	m_pDXContext->CSSetConstantBuffers(0, static_cast<uint32_t>(pCBs.size()), pCBs.begin());
+	
+	// Dispatch
+	m_pDXContext->CSSetShader(m_pShader->GetComputeShader(CS_TRI_PROJ).Get(), nullptr, 0);
+	m_pDXContext->Dispatch(static_cast<uint32_t>(ceilf(m_uNumIndices / static_cast<float>(GROUP_SIZE))), 1, 1);
+
+	// Unset
+	const auto vpNullSRVs = vLPDXSRV(pSRVs.size(), nullptr);
+	m_pDXContext->CSSetShaderResources(0, static_cast<uint32_t>(vpNullSRVs.size()), vpNullSRVs.data());
+	m_pDXContext->CSSetUnorderedAccessViews(0, 1, &g_pNullUAV, &g_uNullUint);
+
+	// Graphics pass
+	auto pRTV = CPDXRenderTargetView();
+	auto pDSV = CPDXDepthStencilView();
+	m_pDXContext->OMGetRenderTargets(1, &pRTV, &pDSV);
+
+	auto uNumViewports = 1u;
+	auto vpBack = D3D11_VIEWPORT();
+	m_pDXContext->RSGetViewports(&uNumViewports, &vpBack);
+
+	const auto uOffset = 0u;
+	const auto pUAVs =
+	{
+		m_pTxGrids.x->GetUAV(uMip).Get(),
+		m_pTxGrids.y->GetUAV(uMip).Get(),
+		m_pTxGrids.z->GetUAV(uMip).Get(),
+		m_pTxGrids.w->GetUAV(uMip).Get(),
+		m_pTxMutex->GetUAV().Get()
+	};
+	m_pDXContext->OMSetRenderTargetsAndUnorderedAccessViews(0, nullptr, nullptr,
+		0, static_cast<uint32_t>(pUAVs.size()), pUAVs.begin(), &g_uNullUint);
+
+	const auto fGridSize = static_cast<float>(GRID_SIZE >> uMip);
+	const auto vpSlice = CD3D11_VIEWPORT(0.0f, 0.0f, fGridSize, fGridSize);
+	m_pDXContext->RSSetViewports(uNumViewports, &vpSlice);
+	m_pDXContext->RSSetState(m_pState->CullNone().Get());
+
+	for (auto i = 0ui8; i < 4; ++i)
+		m_pDXContext->ClearUnorderedAccessViewFloat(m_pTxGrids.array[i]->GetUAV(uMip).Get(), DirectX::Colors::Transparent);
+	m_pDXContext->ClearUnorderedAccessViewUint(m_pTxMutex->GetUAV().Get(), XMVECTORU32{ 0 }.u);
+
+	const auto pNullBuffer = static_cast<LPDXBuffer>(nullptr);
+	m_pDXContext->PSSetConstantBuffers(0, 1, m_vpCBPerMipLevels[uMip].GetAddressOf());
+	m_pDXContext->IASetVertexBuffers(0, 1, &pNullBuffer, &g_uNullUint, &g_uNullUint);
+	m_pDXContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	m_pDXContext->VSSetShader(m_pShader->GetVertexShader(VS_TRI_PROJ_COMP).Get(), nullptr, 0);
+	m_pDXContext->PSSetShader(m_pShader->GetPixelShader(PS_TRI_PROJ_TESS).Get(), nullptr, 0);
+	m_pDXContext->VSSetShaderResources(0, 1, m_pVBTransformed->GetSRV().GetAddressOf());
+	m_pDXContext->Draw(m_uNumIndices, 0);
+
+	// Reset states
+	m_pDXContext->VSSetShaderResources(0, 1, &g_pNullSRV);
+	m_pDXContext->RSSetState(nullptr);
+	m_pDXContext->RSSetViewports(uNumViewports, &vpBack);
+	m_pDXContext->OMSetRenderTargets(1, pRTV.GetAddressOf(), pDSV.Get());
+}
+
+void SurfaceVoxelizer::voxelizeSolid(const Method eVoxMethod)
 {
 	static auto t = 0u;
-	voxelize(bTess);
+	switch (eVoxMethod)
+	{
+	case TRI_PROJ_COMP:
+		voxelizeCS();
+		break;
+	case TRI_PROJ_UNION:
+		voxelize(false);
+		break;
+	default:
+		voxelize(true);
+	}
 
 	const auto uIter = m_uNumLevels - 1;
 	//for (auto i = 0u; i < m_uNumLevels; ++i) voxelize(bTess, i);
