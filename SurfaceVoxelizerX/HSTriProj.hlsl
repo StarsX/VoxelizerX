@@ -2,7 +2,7 @@
 // By XU, Tianchen
 //--------------------------------------------------------------------------------------
 
-#define NUM_CONTROL_POINTS 3
+#define NUM_CONTROL_POINTS	3
 
 // Input control point
 struct VSOut

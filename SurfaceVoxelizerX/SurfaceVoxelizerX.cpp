@@ -327,6 +327,7 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, const DXGI_SURFAC
 
 	auto loadVSTask = g_pShader->CreateVertexShader(L"VSTriProjTess.cso", SurfaceVoxelizer::VS_TRI_PROJ_TESS);
 	loadVSTask = loadVSTask && g_pShader->CreateVertexShader(L"VSTriProj.cso", SurfaceVoxelizer::VS_TRI_PROJ);
+	loadVSTask = loadVSTask && g_pShader->CreateVertexShader(L"VSTriProjComp.cso", SurfaceVoxelizer::VS_TRI_PROJ_COMP);
 	loadVSTask = loadVSTask && g_pShader->CreateVertexShader(L"VSPointArray.cso", SurfaceVoxelizer::VS_POINT_ARRAY);
 	loadVSTask = loadVSTask && g_pShader->CreateVertexShader(L"VSBoxArray.cso", SurfaceVoxelizer::VS_BOX_ARRAY);
 	const auto loadHSTask = g_pShader->CreateHullShader(L"HSTriProj.cso", SurfaceVoxelizer::HS_TRI_PROJ);
@@ -337,6 +338,7 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, const DXGI_SURFAC
 	auto loadCSTask = g_pShader->CreateComputeShader(L"CSDownSample.cso", SurfaceVoxelizer::CS_DOWN_SAMPLE);
 	loadCSTask = loadCSTask && g_pShader->CreateComputeShader(L"CSFillSolid.cso", SurfaceVoxelizer::CS_FILL_SOLID);
 	loadCSTask = loadCSTask && g_pShader->CreateComputeShader(L"CSRayCast.cso", SurfaceVoxelizer::CS_RAY_CAST);
+	loadCSTask = loadCSTask && g_pShader->CreateComputeShader(L"CSTriProj.cso", SurfaceVoxelizer::CS_TRI_PROJ);
 
 	const auto createShaderTask = loadVSTask && loadHSTask && loadDSTask && loadPSTask && loadCSTask;
 

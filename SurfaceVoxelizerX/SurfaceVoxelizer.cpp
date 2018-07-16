@@ -42,6 +42,10 @@ void SurfaceVoxelizer::Init(const uint32_t uWidth, const uint32_t uHeight, const
 	createVB(objLoader.GetNumVertices(), objLoader.GetVertexStride(), objLoader.GetVertices());
 	createIB(objLoader.GetNumIndices(), objLoader.GetIndices());
 
+	m_pVBTransformed = make_unique<StructuredBuffer>(m_pDXDevice);
+	m_pVBTransformed->Create(objLoader.GetNumVertices(), sizeof(TransformedVertex),
+		D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
+
 	// Extract boundary
 	const auto vCenter = objLoader.GetCenter();
 	m_vBound = XMFLOAT4(vCenter.x, vCenter.y, vCenter.z, objLoader.GetRadius());

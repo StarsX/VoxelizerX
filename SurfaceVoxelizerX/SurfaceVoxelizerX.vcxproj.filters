@@ -28,6 +28,9 @@
     <Filter Include="XSDX\Header Files">
       <UniqueIdentifier>{1ff64dfb-3d60-461d-9062-2087654e8e6c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="XSDX\Shader Files">
+      <UniqueIdentifier>{096d993e-d115-46a0-ae52-a51b90af2b28}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -149,5 +152,19 @@
     <FxCompile Include="CSFillSolid.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="CSTriProj.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="VSTriProjComp.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CSTriProj.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="XSDX\CHDataSize.hlsli">
+      <Filter>XSDX\Shader Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

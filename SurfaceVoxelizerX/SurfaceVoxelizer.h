@@ -1,3 +1,7 @@
+//--------------------------------------------------------------------------------------
+// By XU, Tianchen
+//--------------------------------------------------------------------------------------
+
 #pragma once
 
 #include "XSDXShader.h"
@@ -11,6 +15,7 @@ public:
 	{
 		VS_TRI_PROJ_TESS,
 		VS_TRI_PROJ,
+		VS_TRI_PROJ_COMP,
 		VS_POINT_ARRAY,
 		VS_BOX_ARRAY
 	};
@@ -36,7 +41,8 @@ public:
 	{
 		CS_DOWN_SAMPLE,
 		CS_FILL_SOLID,
-		CS_RAY_CAST
+		CS_RAY_CAST,
+		CS_TRI_PROJ
 	};
 
 	SurfaceVoxelizer(const XSDX::CPDXDevice &pDXDevice, const XSDX::spShader &pShader, const XSDX::spState &pState);
@@ -80,6 +86,15 @@ protected:
 		XSDX::upTexture3D z;
 		XSDX::upTexture3D w;
 		ppTexture3D array = &x;
+	};
+
+	struct TransformedVertex
+	{
+		DirectX::XMFLOAT2 Pos;
+		DirectX::XMFLOAT3 PosLoc;
+		DirectX::XMFLOAT3 Nrm;
+		DirectX::XMFLOAT3 TexLoc;
+		DirectX::XMFLOAT4 Bound;
 	};
 
 	void createVB(const uint32_t uNumVert, const uint32_t uStride, const uint8_t *pData);
