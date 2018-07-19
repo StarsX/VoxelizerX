@@ -2,42 +2,68 @@
 // By XU, Tianchen
 //--------------------------------------------------------------------------------------
 
-struct VSIn
+#include "CHDataSize.hlsli"
+
+#define	main	VertShader
+#include "VSTriProjTess.hlsl"
+#undef main
+
+#define NUM_CONTROL_POINTS	3
+
+#include "HSTriProj.hlsli"
+#include "DSTriProj.hlsli"
+
+static const uint g_uStrideVB = SIZE_OF_FLOAT3 * 2;
+
+ByteAddressBuffer g_roIndices;
+ByteAddressBuffer g_roVertices;
+
+VSIn LoadVSIn(const uint uIdx)
 {
-	float3	Pos		: POSITION;
-	float3	Nrm		: NORMAL;
-};
+	VSIn result;
+	const uint uVid = g_roIndices.Load(SIZE_OF_UINT * uIdx);
+	const uint uBase = uVid * g_uStrideVB;
 
-struct VSOut
+	result.Pos = asfloat(g_roVertices.Load3(uBase));
+	result.Nrm = asfloat(g_roVertices.Load3(uBase + SIZE_OF_FLOAT3));
+
+	return result;
+}
+
+DSOut main(const uint vID : SV_VertexID, const uint vPrimID : SV_InstanceID)
 {
-	float4	Pos		: SV_POSITION;
-	float3	PosLoc	: POSLOCAL;
-	float3	Nrm		: NORMAL;
-	float3	TexLoc	: TEXLOCATION;
-};
+	DSOut output;
 
-cbuffer cbPerObject
-{
-	float3	g_vCenter	: packoffset(c0);
-	float	g_fRadius : packoffset(c0.w);
-};
+	// Call vertex shaders
+	VSOut ip[] =
+	{
+		VertShader(LoadVSIn(vPrimID * NUM_CONTROL_POINTS)),
+		VertShader(LoadVSIn(vPrimID * NUM_CONTROL_POINTS + 1)),
+		VertShader(LoadVSIn(vPrimID * NUM_CONTROL_POINTS + 2))
+	};
 
-VSOut main(VSIn input, uint viewID : SV_InstanceID)
-{
-	VSOut output;
+	// Calculate projected triangle sizes (equivalent to area) for 3 views
+	const float3 vPrimSize = PrimSize(ip);
 
-	// Normalize
-	const float3 vPos = (input.Pos - g_vCenter) / g_fRadius;
-
-	// Select the view
-	output.Pos.xy = viewID == 0 ? vPos.xy : (viewID == 1 ? vPos.yz : vPos.zx);
-	output.Pos.zw = float2(0.5, 1.0);
-
-	// Other attributes
-	output.PosLoc = input.Pos;
-	output.Nrm = input.Nrm;
-	output.TexLoc = vPos * 0.5 + 0.5;
-	output.TexLoc.y = 1.0 - output.TexLoc.y;
+	// Select the view with maximal projected AABB
+	float2 v[] =
+	{
+		Project(ip[0].Pos, vPrimSize),
+		Project(ip[1].Pos, vPrimSize),
+		Project(ip[2].Pos, vPrimSize),
+	};
+	
+	// Call hull shaders
+	HSOut patch[] =
+	{
+		HSMain(v[0], ip, 0),
+		HSMain(v[1], ip, 1),
+		HSMain(v[2], ip, 2)
+	};
+	
+	// Call domain shader
+	const float3 domain = { vID == 0, vID == 1, vID == 2 };
+	output = DSMain(domain, patch);
 
 	return output;
 }

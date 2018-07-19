@@ -11,18 +11,18 @@
 class SurfaceVoxelizer
 {
 public:
-	enum Method
+	enum Method				: uint32_t
 	{
+		TRI_PROJ,
 		TRI_PROJ_TESS,
-		TRI_PROJ_COMP,
 		TRI_PROJ_UNION
 	};
 
 	enum VertexShaderID		: uint32_t
 	{
-		VS_TRI_PROJ_TESS,
 		VS_TRI_PROJ,
-		VS_TRI_PROJ_COMP,
+		VS_TRI_PROJ_TESS,
+		VS_TRI_PROJ_UNION,
 		VS_POINT_ARRAY,
 		VS_BOX_ARRAY
 	};
@@ -39,8 +39,8 @@ public:
 
 	enum PixelShaderID		: uint32_t
 	{
-		PS_TRI_PROJ_TESS,
 		PS_TRI_PROJ,
+		PS_TRI_PROJ_UNION,
 		PS_SIMPLE
 	};
 
@@ -48,8 +48,7 @@ public:
 	{
 		CS_DOWN_SAMPLE,
 		CS_FILL_SOLID,
-		CS_RAY_CAST,
-		CS_TRI_PROJ
+		CS_RAY_CAST
 	};
 
 	SurfaceVoxelizer(const XSDX::CPDXDevice &pDXDevice, const XSDX::spShader &pShader, const XSDX::spState &pState);
@@ -57,8 +56,8 @@ public:
 
 	void Init(const uint32_t uWidth, const uint32_t uHeight, const char *szFileName = "Media\\bunny.obj");
 	void UpdateFrame(DirectX::CXMVECTOR vEyePt, DirectX::CXMMATRIX mViewProj);
-	void Render(const Method eVoxMethod = TRI_PROJ_TESS);
-	void Render(const XSDX::CPDXUnorderedAccessView &pUAVSwapChain, const Method eVoxMethod = TRI_PROJ_TESS);
+	void Render(const Method eVoxMethod = TRI_PROJ);
+	void Render(const XSDX::CPDXUnorderedAccessView &pUAVSwapChain, const Method eVoxMethod = TRI_PROJ);
 
 	static void CreateVertexLayout(const XSDX::CPDXDevice &pDXDevice, XSDX::CPDXInputLayout &pVertexLayout,
 		const XSDX::spShader &pShader, const uint8_t uVS);
@@ -95,19 +94,10 @@ protected:
 		ppTexture3D array = &x;
 	};
 
-	struct TransformedVertex
-	{
-		DirectX::XMFLOAT2 Pos;
-		DirectX::XMFLOAT3 PosLoc;
-		DirectX::XMFLOAT3 Nrm;
-		DirectX::XMFLOAT3 TexLoc;
-		DirectX::XMFLOAT4 Bound;
-	};
-
 	void createVB(const uint32_t uNumVert, const uint32_t uStride, const uint8_t *pData);
 	void createIB(const uint32_t uNumIndices, const uint32_t *pData);
 	void createCBs();
-	void voxelize(const bool bTess, const uint8_t uMip = 0);
+	void voxelize(const Method eVoxMethod, const uint8_t uMip = 0);
 	void voxelizeCS(const uint8_t uMip = 0);
 	void voxelizeSolid(const Method eVoxMethod);
 	void downSample(const uint32_t i);
@@ -132,8 +122,6 @@ protected:
 	XSDX::CPDXBuffer				m_pCBPerObject;
 	XSDX::CPDXBuffer				m_pCBBound;
 	XSDX::vCPDXBuffer				m_vpCBPerMipLevels;
-
-	XSDX::upStructuredBuffer		m_pVBTransformed;
 
 	upTexture3Ds					m_pTxGrids;
 	XSDX::upTexture3D				m_pTxMutex;

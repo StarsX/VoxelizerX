@@ -11,7 +11,7 @@ struct PSIn
 	min16float3	NrmCube	: CUBENORMAL;
 };
 
-min16float4 main(PSIn input) : SV_TARGET
+min16float4 main(const PSIn input) : SV_TARGET
 {
 	const float3 vLightPt = 1.0;
 	const min16float3 vLightDir = min16float3(normalize(vLightPt));

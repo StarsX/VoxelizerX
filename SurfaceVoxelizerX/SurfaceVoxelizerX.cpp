@@ -39,7 +39,7 @@ spState							g_pState;
 
 IDXGISwapChain*					g_pSwapChain = nullptr;
 
-SurfaceVoxelizer::Method		g_eVoxMethod = SurfaceVoxelizer::TRI_PROJ_TESS;
+SurfaceVoxelizer::Method		g_eVoxMethod = SurfaceVoxelizer::TRI_PROJ;
 
 //--------------------------------------------------------------------------------------
 // UI control IDs
@@ -50,8 +50,8 @@ enum ButtonID
 	IDC_TOGGLEREF,
 	IDC_CHANGEDEVICE,
 	IDC_TOGGLEWARP,
-	IDC_TRI_PROJ_TESS = 5,
-	IDC_TRI_PROJ_COMP,
+	IDC_TRI_PROJ = 5,
+	IDC_TRI_PROJ_TESS,
 	IDC_TRI_PROJ_UNION,
 	IDC_BOX_ARRAY,
 	IDC_RAY_CAST
@@ -153,12 +153,12 @@ void InitApp()
 	g_SampleUI.Init(&g_DialogResourceManager);
 	g_SampleUI.SetCallback(OnGUIEvent);
 
-	auto iX = -240;
+	auto iX = -255;
 	auto iY = -670;
+	g_SampleUI.AddRadioButton(IDC_TRI_PROJ, 0, L"Axis-aligned projection (AAP) of max projected area", iX, iY += 26, 150, 22);
 	g_SampleUI.AddRadioButton(IDC_TRI_PROJ_TESS, 0, L"Tessellation for AAP view of max projected area", iX, iY += 26, 150, 22);
-	g_SampleUI.AddRadioButton(IDC_TRI_PROJ_COMP, 0, L"Compute for AAP view of max projected area", iX, iY += 26, 150, 22);
-	g_SampleUI.AddRadioButton(IDC_TRI_PROJ_UNION, 0, L"Union of 3 axis-aligned projection (AAP) views", iX, iY += 26, 150, 22);
-	g_SampleUI.GetRadioButton(IDC_TRI_PROJ_TESS)->SetChecked(true);
+	g_SampleUI.AddRadioButton(IDC_TRI_PROJ_UNION, 0, L"Union of 3 axis-aligned projection views", iX, iY += 26, 150, 22);
+	g_SampleUI.GetRadioButton(IDC_TRI_PROJ)->SetChecked(true);
 	g_SampleUI.AddRadioButton(IDC_BOX_ARRAY, 1, L"Render surface voxels as box array", iX, iY += 36, 150, 22);
 	g_SampleUI.AddRadioButton(IDC_RAY_CAST, 1, L"Render solid voxels with raycasting", iX, iY += 26, 150, 22);
 	g_SampleUI.GetRadioButton(IDC_BOX_ARRAY)->SetChecked(true);
@@ -280,11 +280,11 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, vo
 	switch (nControlID)
 	{
 		// Standard DXUT controls
+	case IDC_TRI_PROJ:
+		g_eVoxMethod = SurfaceVoxelizer::TRI_PROJ;
+		break;
 	case IDC_TRI_PROJ_TESS:
 		g_eVoxMethod = SurfaceVoxelizer::TRI_PROJ_TESS;
-		break;
-	case IDC_TRI_PROJ_COMP:
-		g_eVoxMethod = SurfaceVoxelizer::TRI_PROJ_COMP;
 		break;
 	case IDC_TRI_PROJ_UNION:
 		g_eVoxMethod = SurfaceVoxelizer::TRI_PROJ_UNION;
@@ -331,27 +331,26 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, const DXGI_SURFAC
 
 	g_pSurfaceVoxelizer = make_unique<SurfaceVoxelizer>(pd3dDevice, g_pShader, g_pState);
 
-	auto loadVSTask = g_pShader->CreateVertexShader(L"VSTriProjTess.cso", SurfaceVoxelizer::VS_TRI_PROJ_TESS);
-	loadVSTask = loadVSTask && g_pShader->CreateVertexShader(L"VSTriProj.cso", SurfaceVoxelizer::VS_TRI_PROJ);
-	loadVSTask = loadVSTask && g_pShader->CreateVertexShader(L"VSTriProjComp.cso", SurfaceVoxelizer::VS_TRI_PROJ_COMP);
+	auto loadVSTask = g_pShader->CreateVertexShader(L"VSTriProj.cso", SurfaceVoxelizer::VS_TRI_PROJ);
+	loadVSTask = loadVSTask && g_pShader->CreateVertexShader(L"VSTriProjTess.cso", SurfaceVoxelizer::VS_TRI_PROJ_TESS);
+	loadVSTask = loadVSTask && g_pShader->CreateVertexShader(L"VSTriProjUnion.cso", SurfaceVoxelizer::VS_TRI_PROJ_UNION);
 	loadVSTask = loadVSTask && g_pShader->CreateVertexShader(L"VSPointArray.cso", SurfaceVoxelizer::VS_POINT_ARRAY);
 	loadVSTask = loadVSTask && g_pShader->CreateVertexShader(L"VSBoxArray.cso", SurfaceVoxelizer::VS_BOX_ARRAY);
 	const auto loadHSTask = g_pShader->CreateHullShader(L"HSTriProj.cso", SurfaceVoxelizer::HS_TRI_PROJ);
 	const auto loadDSTask = g_pShader->CreateDomainShader(L"DSTriProj.cso", SurfaceVoxelizer::DS_TRI_PROJ);
-	auto loadPSTask = g_pShader->CreatePixelShader(L"PSTriProjTess.cso", SurfaceVoxelizer::PS_TRI_PROJ_TESS);
-	loadPSTask = loadPSTask && g_pShader->CreatePixelShader(L"PSTriProj.cso", SurfaceVoxelizer::PS_TRI_PROJ);
+	auto loadPSTask = g_pShader->CreatePixelShader(L"PSTriProj.cso", SurfaceVoxelizer::PS_TRI_PROJ);
+	loadPSTask = loadPSTask && g_pShader->CreatePixelShader(L"PSTriProjUnion.cso", SurfaceVoxelizer::PS_TRI_PROJ_UNION);
 	loadPSTask = loadPSTask && g_pShader->CreatePixelShader(L"PSSimple.cso", SurfaceVoxelizer::PS_SIMPLE);
 	auto loadCSTask = g_pShader->CreateComputeShader(L"CSDownSample.cso", SurfaceVoxelizer::CS_DOWN_SAMPLE);
 	loadCSTask = loadCSTask && g_pShader->CreateComputeShader(L"CSFillSolid.cso", SurfaceVoxelizer::CS_FILL_SOLID);
 	loadCSTask = loadCSTask && g_pShader->CreateComputeShader(L"CSRayCast.cso", SurfaceVoxelizer::CS_RAY_CAST);
-	loadCSTask = loadCSTask && g_pShader->CreateComputeShader(L"CSTriProj.cso", SurfaceVoxelizer::CS_TRI_PROJ);
 
 	const auto createShaderTask = loadVSTask && loadHSTask && loadDSTask && loadPSTask && loadCSTask;
 
 	// Once the mesh is loaded, the object is ready to be rendered.
 	createShaderTask.then([pd3dDevice]()
 	{
-		SurfaceVoxelizer::CreateVertexLayout(pd3dDevice, SurfaceVoxelizer::GetVertexLayout(), g_pShader, 0);
+		SurfaceVoxelizer::CreateVertexLayout(pd3dDevice, SurfaceVoxelizer::GetVertexLayout(), g_pShader, SurfaceVoxelizer::VS_TRI_PROJ_TESS);
 		g_pShader->ReleaseShaderBuffers();
 
 		// View

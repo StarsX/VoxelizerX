@@ -131,19 +131,10 @@
     <FxCompile Include="DSTriProj.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="PSTriProj.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="CSRayCast.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="VSTriProjTess.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="VSTriProj.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="PSTriProjTess.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="CSDownSample.hlsl">
@@ -152,19 +143,28 @@
     <FxCompile Include="CSFillSolid.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="CSTriProj.hlsl">
+    <FxCompile Include="PSTriProjUnion.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="VSTriProjComp.hlsl">
+    <FxCompile Include="VSTriProjUnion.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="VSTriProj.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PSTriProj.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="CSTriProj.hlsli">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="XSDX\CHDataSize.hlsli">
       <Filter>XSDX\Shader Files</Filter>
+    </None>
+    <None Include="DSTriProj.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="HSTriProj.hlsli">
+      <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
 </Project>

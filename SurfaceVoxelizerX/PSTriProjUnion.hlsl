@@ -2,15 +2,12 @@
 // By XU, Tianchen
 //--------------------------------------------------------------------------------------
 
-#include "SharedConst.h"
-
 struct PSIn
 {
 	float4	Pos		: SV_POSITION;
 	float3	PosLoc	: POSLOCAL;
 	float3	Nrm		: NORMAL;
 	float3	TexLoc	: TEXLOCATION;
-	float4	Bound	: AABB;
 };
 
 cbuffer cbPerMipLevel
@@ -22,16 +19,12 @@ globallycoherent
 RWTexture3D<min16float>	g_RWGrids[4];
 RWTexture3D<uint>		g_RWMutex;
 
-void main(PSIn input)
+void main(const PSIn input)
 {
 	const uint3 vLoc = input.TexLoc * g_fGridSize;
-	const float4 vBound = input.Bound * g_fGridSize;
-
 	const min16float3 vNorm = min16float3(normalize(input.Nrm));
-	const bool bWrite = input.Pos.x + 1.0 > vBound.x && input.Pos.y + 1.0 > vBound.y &&
-		input.Pos.x < vBound.z + 1.0 && input.Pos.y < vBound.w + 1.0;
 
-	uint uLock = 0;
+	uint uLock;
 	[allow_uav_condition]
 	for (uint i = 0; i < 0xffffffff; ++i)
 	{
@@ -40,7 +33,6 @@ void main(PSIn input)
 		if (uLock != 1)
 		{
 			// Critical section
-			if (bWrite)
 			{
 				g_RWGrids[0][vLoc] += vNorm.x;
 				g_RWGrids[1][vLoc] += vNorm.y;
