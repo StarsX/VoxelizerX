@@ -155,6 +155,12 @@
     <FxCompile Include="PSTriProj.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="CSGenDirTable.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="CSDownSampleDirTable.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="XSDX\CHDataSize.hlsli">

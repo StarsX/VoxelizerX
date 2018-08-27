@@ -61,8 +61,9 @@ void SurfaceVoxelizer::Init(const uint32_t uWidth, const uint32_t uHeight, const
 		D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS, m_uNumLevels);
 	m_pTxGrids.w->CreateSubSRVs();
 
-	m_pTxMutex = make_unique<Texture3D>(m_pDXDevice);
-	m_pTxMutex->Create(GRID_SIZE, GRID_SIZE, GRID_SIZE, DXGI_FORMAT_R32_UINT);
+	m_pTxUint = make_unique<Texture3D>(m_pDXDevice);
+	m_pTxUint->Create(GRID_SIZE, GRID_SIZE, GRID_SIZE, DXGI_FORMAT_R32_UINT,
+		D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS, m_uNumLevels);
 }
 
 void SurfaceVoxelizer::UpdateFrame(DirectX::CXMVECTOR vEyePt, DirectX::CXMMATRIX mViewProj)
@@ -195,7 +196,7 @@ void SurfaceVoxelizer::voxelize(const Method eVoxMethod, const uint8_t uMip)
 		m_pTxGrids.y->GetUAV(uMip).Get(),
 		m_pTxGrids.z->GetUAV(uMip).Get(),
 		m_pTxGrids.w->GetUAV(uMip).Get(),
-		m_pTxMutex->GetUAV().Get()
+		m_pTxUint->GetUAV().Get()
 	};
 	m_pDXContext->OMSetRenderTargetsAndUnorderedAccessViews(0, nullptr, nullptr,
 		0, static_cast<uint32_t>(pUAVs.size()), pUAVs.begin(), &g_uNullUint);
@@ -207,7 +208,7 @@ void SurfaceVoxelizer::voxelize(const Method eVoxMethod, const uint8_t uMip)
 
 	for (auto i = 0ui8; i < 4; ++i)
 		m_pDXContext->ClearUnorderedAccessViewFloat(m_pTxGrids.array[i]->GetUAV(uMip).Get(), DirectX::Colors::Transparent);
-	m_pDXContext->ClearUnorderedAccessViewUint(m_pTxMutex->GetUAV().Get(), XMVECTORU32{ 0 }.u);
+	m_pDXContext->ClearUnorderedAccessViewUint(m_pTxUint->GetUAV().Get(), XMVECTORU32{ 0 }.u);
 	
 	m_pDXContext->VSSetConstantBuffers(0, 1, m_pCBBound.GetAddressOf());
 

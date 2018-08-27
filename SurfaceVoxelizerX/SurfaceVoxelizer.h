@@ -124,7 +124,7 @@ protected:
 	XSDX::vCPDXBuffer				m_vpCBPerMipLevels;
 
 	upTexture3Ds					m_pTxGrids;
-	XSDX::upTexture3D				m_pTxMutex;
+	XSDX::upTexture3D				m_pTxUint;
 
 	XSDX::spShader					m_pShader;
 	XSDX::spState					m_pState;
