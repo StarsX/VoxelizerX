@@ -17,20 +17,21 @@ void main(uint3 DTid : SV_DispatchThreadID, uint3 GTid : SV_GroupThreadID, uint3
 	vData.z = g_txGrid[2][DTid];
 	vData.w = g_txGrid[3][DTid];
 
-	uint uResult = 0;
+	int iResult = 0;
 
 	if (vData.w > 0.0)
 	{
-		const min16float3 vNorm = normalize(vData.xyz);
+		min16float3 vNorm = normalize(vData.xyz);
+		vNorm.y = -vNorm.y;
 
-		uResult |= dot(vNorm, min16float3(-1.0, 0.0.xx)) < 0.0 ? 1 : 0;
-		uResult |= dot(vNorm, min16float3(1.0, 0.0.xx)) < 0.0 ? (1 << 1) : 0;
-		uResult |= dot(vNorm, min16float3(0.0, -1.0, 0.0)) < 0.0 ? (1 << 2) : 0;
-		uResult |= dot(vNorm, min16float3(0.0, 1.0, 0.0)) < 0.0 ? (1 << 3) : 0;
-		uResult |= dot(vNorm, min16float3(0.0.xx, -1.0)) < 0.0 ? (1 << 4) : 0;
-		uResult |= dot(vNorm, min16float3(0.0.xx, 1.0)) < 0.0 ? (1 << 5) : 0;
+		iResult |= dot(vNorm, min16float3(-1.0, 0.0.xx)) < 0.0 ? 1 : 0;
+		iResult |= dot(vNorm, min16float3(1.0, 0.0.xx)) < 0.0 ? (1 << 1) : 0;
+		iResult |= dot(vNorm, min16float3(0.0, -1.0, 0.0)) < 0.0 ? (1 << 2) : 0;
+		iResult |= dot(vNorm, min16float3(0.0, 1.0, 0.0)) < 0.0 ? (1 << 3) : 0;
+		iResult |= dot(vNorm, min16float3(0.0.xx, -1.0)) < 0.0 ? (1 << 4) : 0;
+		iResult |= dot(vNorm, min16float3(0.0.xx, 1.0)) < 0.0 ? (1 << 5) : 0;
 	}
-	else uResult = 0xffffffff;
+	else iResult = -1;
 
-	g_RWGrid[DTid] = uResult;
+	g_RWGrid[DTid] = asuint(iResult);
 }
