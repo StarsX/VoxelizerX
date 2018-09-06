@@ -382,6 +382,62 @@ void SurfaceVoxelizer::fillSolid(const uint32_t i)
 	m_pDXContext->CSSetUnorderedAccessViews(0, static_cast<uint32_t>(vpNullUAVs.size()), vpNullUAVs.data(), &g_uNullUint);
 }
 
+void SurfaceVoxelizer::voxelizeSolidEnc(const Method eVoxMethod)
+{
+	voxelize(eVoxMethod);
+
+	// Gnerate encoded direction table
+	{
+		// Setup
+		const auto pSRVs =
+		{
+			m_pTxGrids.x->GetSRVLevel(0).Get(),
+			m_pTxGrids.y->GetSRVLevel(0).Get(),
+			m_pTxGrids.z->GetSRVLevel(0).Get(),
+			m_pTxGrids.w->GetSRVLevel(0).Get()
+		};
+		m_pDXContext->CSSetUnorderedAccessViews(0, 1, m_pTxUint->GetUAV().GetAddressOf(), &g_uNullUint);
+		m_pDXContext->CSSetShaderResources(0, static_cast<uint32_t>(pSRVs.size()), pSRVs.begin());
+
+		// Dispatch
+		m_pDXContext->CSSetShader(m_pShader->GetComputeShader(CS_GEN_DIR).Get(), nullptr, 0);
+		m_pDXContext->Dispatch(GRID_SIZE / 32, GRID_SIZE / 16, GRID_SIZE);
+
+		// Unset
+		const auto vpNullSRVs = vLPDXSRV(pSRVs.size(), nullptr);
+		m_pDXContext->CSSetShaderResources(0, static_cast<uint32_t>(vpNullSRVs.size()), vpNullSRVs.data());
+		m_pDXContext->CSSetUnorderedAccessViews(0, 1, &g_pNullUAV, &g_uNullUint);
+	}
+
+	const auto uIter = m_uNumLevels - 1;
+	for (auto i = 0u; i < uIter; ++i) downSampleEnc(i);
+	for (auto i = uIter; i > 0; --i) fillSolidEnc(i);
+}
+
+void SurfaceVoxelizer::downSampleEnc(const uint32_t i)
+{
+	// Setup
+	const auto pUAVs =
+	{
+		m_pTxUint->GetUAV(i).Get(),
+		m_pTxUint->GetUAV(i + 1).Get()
+	};
+	m_pDXContext->CSSetUnorderedAccessViews(0, static_cast<uint32_t>(pUAVs.size()), pUAVs.begin(), &g_uNullUint);
+
+	// Dispatch
+	const auto uGroupCount = static_cast<uint32_t>(GRID_SIZE >> i >> 1);
+	m_pDXContext->CSSetShader(m_pShader->GetComputeShader(CS_DOWN_SAMPLE_ENC).Get(), nullptr, 0);
+	m_pDXContext->Dispatch(uGroupCount, uGroupCount, uGroupCount);
+
+	// Unset
+	const auto vpNullUAVs = vLPDXUAV(pUAVs.size(), nullptr);
+	m_pDXContext->CSSetUnorderedAccessViews(0, static_cast<uint32_t>(vpNullUAVs.size()), vpNullUAVs.data(), &g_uNullUint);
+}
+
+void SurfaceVoxelizer::fillSolidEnc(const uint32_t i)
+{
+}
+
 void SurfaceVoxelizer::renderPointArray()
 {
 	const auto uOffset = 0u;

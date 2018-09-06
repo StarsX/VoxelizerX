@@ -158,7 +158,7 @@
     <FxCompile Include="CSGenDirTable.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="CSDownSampleDirTable.hlsl">
+    <FxCompile Include="CSDownSampleEnc.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

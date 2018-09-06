@@ -343,6 +343,9 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, const DXGI_SURFAC
 	loadPSTask = loadPSTask && g_pShader->CreatePixelShader(L"PSSimple.cso", SurfaceVoxelizer::PS_SIMPLE);
 	auto loadCSTask = g_pShader->CreateComputeShader(L"CSDownSample.cso", SurfaceVoxelizer::CS_DOWN_SAMPLE);
 	loadCSTask = loadCSTask && g_pShader->CreateComputeShader(L"CSFillSolid.cso", SurfaceVoxelizer::CS_FILL_SOLID);
+	loadCSTask = loadCSTask && g_pShader->CreateComputeShader(L"CSGenDirTable.cso", SurfaceVoxelizer::CS_GEN_DIR);
+	loadCSTask = loadCSTask && g_pShader->CreateComputeShader(L"CSDownSampleEnc.cso", SurfaceVoxelizer::CS_DOWN_SAMPLE_ENC);
+	//loadCSTask = loadCSTask && g_pShader->CreateComputeShader(L"CSFillSolidEnc.cso", SurfaceVoxelizer::CS_FILL_SOLID_ENC);
 	loadCSTask = loadCSTask && g_pShader->CreateComputeShader(L"CSRayCast.cso", SurfaceVoxelizer::CS_RAY_CAST);
 
 	const auto createShaderTask = loadVSTask && loadHSTask && loadDSTask && loadPSTask && loadCSTask;

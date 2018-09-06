@@ -48,6 +48,9 @@ public:
 	{
 		CS_DOWN_SAMPLE,
 		CS_FILL_SOLID,
+		CS_GEN_DIR,
+		CS_DOWN_SAMPLE_ENC,
+		CS_FILL_SOLID_ENC,
 		CS_RAY_CAST
 	};
 
@@ -98,10 +101,12 @@ protected:
 	void createIB(const uint32_t uNumIndices, const uint32_t *pData);
 	void createCBs();
 	void voxelize(const Method eVoxMethod, const uint8_t uMip = 0);
-	void voxelizeCS(const uint8_t uMip = 0);
 	void voxelizeSolid(const Method eVoxMethod);
 	void downSample(const uint32_t i);
 	void fillSolid(const uint32_t i);
+	void voxelizeSolidEnc(const Method eVoxMethod);
+	void downSampleEnc(const uint32_t i);
+	void fillSolidEnc(const uint32_t i);
 	void renderPointArray();
 	void renderBoxArray();
 	void renderRayCast(const XSDX::CPDXUnorderedAccessView &pUAVSwapChain);
