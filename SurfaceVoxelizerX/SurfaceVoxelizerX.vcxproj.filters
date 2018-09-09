@@ -161,6 +161,9 @@
     <FxCompile Include="CSDownSampleEnc.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="CSFillSolidEnc.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="XSDX\CHDataSize.hlsli">

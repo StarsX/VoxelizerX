@@ -14,7 +14,7 @@ RWTexture3D<min16float>	g_RWGrid[4];
 groupshared min16float4	g_Block[2][2][2];
 
 //--------------------------------------------------------------------------------------
-// Down sampling
+// Up sampling
 //--------------------------------------------------------------------------------------
 [numthreads(2, 2, 2)]
 void main(uint3 DTid : SV_DispatchThreadID, uint3 GTid : SV_GroupThreadID, uint3 Gid : SV_GroupID)

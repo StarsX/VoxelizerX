@@ -49,21 +49,18 @@ void SurfaceVoxelizer::Init(const uint32_t uWidth, const uint32_t uHeight, const
 	m_uNumLevels = max(static_cast<uint32_t>(log2(GRID_SIZE)), 1);
 	createCBs();
 
-	for (auto i = 0ui8; i < 3; ++i)
+	for (auto i = 0ui8; i < 4; ++i)
 	{
 		m_pTxGrids.array[i] = make_unique<Texture3D>(m_pDXDevice);
 		m_pTxGrids.array[i]->Create(GRID_SIZE, GRID_SIZE, GRID_SIZE, DXGI_FORMAT_R32_FLOAT,
 			D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS, m_uNumLevels);
-		m_pTxGrids.array[i]->CreateSubSRVs();
+		//m_pTxGrids.array[i]->CreateSubSRVs();
 	}
-	m_pTxGrids.w = make_unique<Texture3D>(m_pDXDevice);
-	m_pTxGrids.w->Create(GRID_SIZE, GRID_SIZE, GRID_SIZE, DXGI_FORMAT_R8_UNORM,
-		D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS, m_uNumLevels);
-	m_pTxGrids.w->CreateSubSRVs();
 
 	m_pTxUint = make_unique<Texture3D>(m_pDXDevice);
 	m_pTxUint->Create(GRID_SIZE, GRID_SIZE, GRID_SIZE, DXGI_FORMAT_R32_UINT,
 		D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS, m_uNumLevels);
+	//m_pTxUint->CreateSubSRVs();
 }
 
 void SurfaceVoxelizer::UpdateFrame(DirectX::CXMVECTOR vEyePt, DirectX::CXMMATRIX mViewProj)
@@ -114,6 +111,7 @@ void SurfaceVoxelizer::Render(const Method eVoxMethod)
 void SurfaceVoxelizer::Render(const CPDXUnorderedAccessView &pUAVSwapChain, const Method eVoxMethod)
 {
 	voxelizeSolid(eVoxMethod);
+	//voxelizeSolidEnc(eVoxMethod);
 	//voxelize(eVoxMethod);
 
 	renderRayCast(pUAVSwapChain);
@@ -321,8 +319,6 @@ void SurfaceVoxelizer::downSample(const uint32_t i)
 	
 	// Dispatch
 	const auto uGroupCount = static_cast<uint32_t>(GRID_SIZE >> i >> 1);
-	for (auto j = 0ui8; j < 4; ++j)
-		m_pDXContext->ClearUnorderedAccessViewFloat(m_pTxGrids.array[j]->GetUAV(i + 1).Get(), DirectX::Colors::Transparent);
 	m_pDXContext->CSSetShader(m_pShader->GetComputeShader(CS_DOWN_SAMPLE).Get(), nullptr, 0);
 	m_pDXContext->Dispatch(uGroupCount, uGroupCount, uGroupCount);
 
@@ -369,7 +365,8 @@ void SurfaceVoxelizer::fillSolid(const uint32_t i)
 #endif
 
 	// Dispatch
-	const auto uGroupCount = static_cast<uint32_t>(GRID_SIZE >> 1);//static_cast<uint32_t>(GRID_SIZE >> i);
+	//const auto uGroupCount = static_cast<uint32_t>(GRID_SIZE >> 1);
+	const auto uGroupCount = static_cast<uint32_t>(GRID_SIZE >> i);
 	m_pDXContext->CSSetShader(m_pShader->GetComputeShader(CS_FILL_SOLID).Get(), nullptr, 0);
 	m_pDXContext->Dispatch(uGroupCount, uGroupCount, uGroupCount);
 
@@ -391,10 +388,10 @@ void SurfaceVoxelizer::voxelizeSolidEnc(const Method eVoxMethod)
 		// Setup
 		const auto pSRVs =
 		{
-			m_pTxGrids.x->GetSRVLevel(0).Get(),
-			m_pTxGrids.y->GetSRVLevel(0).Get(),
-			m_pTxGrids.z->GetSRVLevel(0).Get(),
-			m_pTxGrids.w->GetSRVLevel(0).Get()
+			m_pTxGrids.x->GetSRV().Get(),
+			m_pTxGrids.y->GetSRV().Get(),
+			m_pTxGrids.z->GetSRV().Get(),
+			m_pTxGrids.w->GetSRV().Get()
 		};
 		m_pDXContext->CSSetUnorderedAccessViews(0, 1, m_pTxUint->GetUAV().GetAddressOf(), &g_uNullUint);
 		m_pDXContext->CSSetShaderResources(0, static_cast<uint32_t>(pSRVs.size()), pSRVs.begin());
@@ -411,6 +408,9 @@ void SurfaceVoxelizer::voxelizeSolidEnc(const Method eVoxMethod)
 
 	const auto uIter = m_uNumLevels - 1;
 	for (auto i = 0u; i < uIter; ++i) downSampleEnc(i);
+
+	m_pDXContext->ClearUnorderedAccessViewFloat(m_pTxGrids.w->GetUAV(uIter).Get(), DirectX::Colors::White);
+
 	for (auto i = uIter; i > 0; --i) fillSolidEnc(i);
 }
 
@@ -436,6 +436,23 @@ void SurfaceVoxelizer::downSampleEnc(const uint32_t i)
 
 void SurfaceVoxelizer::fillSolidEnc(const uint32_t i)
 {
+	// Setup
+	const auto pUAVs =
+	{
+		m_pTxUint->GetUAV(i - 1).Get(),
+		m_pTxGrids.w->GetUAV(i).Get(),
+		m_pTxGrids.w->GetUAV(i - 1).Get()
+	};
+	m_pDXContext->CSSetUnorderedAccessViews(0, static_cast<uint32_t>(pUAVs.size()), pUAVs.begin(), &g_uNullUint);
+
+	// Dispatch
+	const auto uGroupCount = static_cast<uint32_t>(GRID_SIZE >> i);
+	m_pDXContext->CSSetShader(m_pShader->GetComputeShader(CS_FILL_SOLID_ENC).Get(), nullptr, 0);
+	m_pDXContext->Dispatch(uGroupCount, uGroupCount, uGroupCount);
+
+	// Unset
+	const auto vpNullUAVs = vLPDXUAV(pUAVs.size(), nullptr);
+	m_pDXContext->CSSetUnorderedAccessViews(0, static_cast<uint32_t>(vpNullUAVs.size()), vpNullUAVs.data(), &g_uNullUint);
 }
 
 void SurfaceVoxelizer::renderPointArray()

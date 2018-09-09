@@ -9,7 +9,7 @@ RWTexture3D<uint>		g_RWGrid;
 // Down sampling
 //--------------------------------------------------------------------------------------
 [numthreads(32, 16, 1)]
-void main(uint3 DTid : SV_DispatchThreadID, uint3 GTid : SV_GroupThreadID, uint3 Gid : SV_GroupID)
+void main(uint3 DTid : SV_DispatchThreadID)
 {
 	min16float4 vData;
 	vData.x = g_txGrid[0][DTid];
@@ -21,15 +21,14 @@ void main(uint3 DTid : SV_DispatchThreadID, uint3 GTid : SV_GroupThreadID, uint3
 
 	if (vData.w > 0.0)
 	{
-		min16float3 vNorm = normalize(vData.xyz);
-		vNorm.y = -vNorm.y;
-
-		iResult |= dot(vNorm, min16float3(-1.0, 0.0.xx)) < 0.0 ? 1 : 0;
-		iResult |= dot(vNorm, min16float3(1.0, 0.0.xx)) < 0.0 ? (1 << 1) : 0;
-		iResult |= dot(vNorm, min16float3(0.0, -1.0, 0.0)) < 0.0 ? (1 << 2) : 0;
-		iResult |= dot(vNorm, min16float3(0.0, 1.0, 0.0)) < 0.0 ? (1 << 3) : 0;
-		iResult |= dot(vNorm, min16float3(0.0.xx, -1.0)) < 0.0 ? (1 << 4) : 0;
-		iResult |= dot(vNorm, min16float3(0.0.xx, 1.0)) < 0.0 ? (1 << 5) : 0;
+		const min16float3 vNorm = normalize(vData.xyz);
+		
+		iResult |= vNorm.x > 0.0 ? 1 : 0;
+		iResult |= vNorm.x < 0.0 ? (1 << 1) : 0;
+		iResult |= vNorm.y < 0.0 ? (1 << 2) : 0;
+		iResult |= vNorm.y > 0.0 ? (1 << 3) : 0;
+		iResult |= vNorm.z > 0.0 ? (1 << 4) : 0;
+		iResult |= vNorm.z < 0.0 ? (1 << 5) : 0;
 	}
 	else iResult = -1;
 
