@@ -24,6 +24,6 @@ void main(uint3 DTid : SV_DispatchThreadID, uint3 GTid : SV_GroupThreadID, uint3
 	MERGE(g_Block[GTid.x][GTid.y][GTid.z], vMask.yzw, GTid.x, g_Block[GTid.x - 1][GTid.y][GTid.z]);
 	MERGE(g_Block[GTid.x][GTid.y][GTid.z], vMask.zxw, GTid.y, g_Block[GTid.x][GTid.y - 1][GTid.z]);
 	MERGE(g_Block[GTid.x][GTid.y][GTid.z], vMask.xyw, GTid.z, g_Block[GTid.x][GTid.y][GTid.z - 1]);
-	
+
 	if (all(GTid)) g_RWGrid[Gid] = g_Block[GTid.x][GTid.y][GTid.z];
 }
