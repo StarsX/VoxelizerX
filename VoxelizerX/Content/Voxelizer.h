@@ -99,7 +99,7 @@ protected:
 	void createIB(const uint32_t uNumIndices, const uint32_t *pData);
 	void createCBs();
 	void voxelize(const Method eVoxMethod, const bool bDepthPeel = false, const uint8_t uMip = 0);
-	void voxelizeSolidDP(const Method eVoxMethod, const uint8_t uMip = 0);
+	void voxelizeSolid(const Method eVoxMethod, const uint8_t uMip = 0);
 	void renderPointArray();
 	void renderBoxArray();
 	void renderRayCast(const XSDX::CPDXUnorderedAccessView &pUAVSwapChain);

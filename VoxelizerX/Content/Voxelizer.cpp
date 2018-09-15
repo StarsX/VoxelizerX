@@ -49,11 +49,13 @@ void Voxelizer::Init(const uint32_t uWidth, const uint32_t uHeight, const char *
 	m_uNumLevels = max(static_cast<uint32_t>(log2(GRID_SIZE)), 1);
 	createCBs();
 
-	for (auto i = 0ui8; i < 4; ++i)
+	for (auto i = 0ui8; i < 3; ++i)
 	{
 		m_pTxGrids.array[i] = make_unique<Texture3D>(m_pDXDevice);
 		m_pTxGrids.array[i]->Create(GRID_SIZE, GRID_SIZE, GRID_SIZE, DXGI_FORMAT_R32_FLOAT);
 	}
+	m_pTxGrids.w = make_unique<Texture3D>(m_pDXDevice);
+	m_pTxGrids.w->Create(GRID_SIZE, GRID_SIZE, GRID_SIZE, DXGI_FORMAT_R8_UNORM);
 
 	m_pTxUint = make_unique<Texture3D>(m_pDXDevice);
 	m_pTxUint->Create(GRID_SIZE, GRID_SIZE, GRID_SIZE, DXGI_FORMAT_R32_UINT,
@@ -110,7 +112,7 @@ void Voxelizer::Render(const Method eVoxMethod)
 
 void Voxelizer::Render(const CPDXUnorderedAccessView &pUAVSwapChain, const Method eVoxMethod)
 {
-	voxelizeSolidDP(eVoxMethod);
+	voxelizeSolid(eVoxMethod);
 
 	renderRayCast(pUAVSwapChain);
 }
@@ -277,20 +279,20 @@ void Voxelizer::voxelize(const Method eVoxMethod, const bool bDepthPeel, const u
 	m_pDXContext->OMSetRenderTargets(1, pRTV.GetAddressOf(), pDSV.Get());
 }
 
-void Voxelizer::voxelizeSolidDP(const Method eVoxMethod, const uint8_t uMip)
+void Voxelizer::voxelizeSolid(const Method eVoxMethod, const uint8_t uMip)
 {
 	voxelize(eVoxMethod, true, uMip);
 
 	// Setup
-	const auto pUAVs =
+	const auto pSRVs =
 	{
-		//m_pTxGrids.x->GetUAV().Get(),
-		//m_pTxGrids.y->GetUAV().Get(),
-		//m_pTxGrids.z->GetUAV().Get(),
-		m_pTxGrids.w->GetUAV().Get()
+		m_pTxGrids.x->GetSRV().Get(),
+		m_pTxGrids.y->GetSRV().Get(),
+		m_pTxGrids.z->GetSRV().Get(),
+		m_pTxKBufferDepth->GetSRV().Get()
 	};
-	m_pDXContext->CSSetUnorderedAccessViews(0, static_cast<uint32_t>(pUAVs.size()), pUAVs.begin(), &g_uNullUint);
-	m_pDXContext->CSSetShaderResources(0, 1, m_pTxKBufferDepth->GetSRV().GetAddressOf());
+	m_pDXContext->CSSetUnorderedAccessViews(0, 1, m_pTxGrids.w->GetUAV().GetAddressOf(), &g_uNullUint);
+	m_pDXContext->CSSetShaderResources(0, static_cast<uint32_t>(pSRVs.size()), pSRVs.begin());
 	m_pDXContext->CSSetConstantBuffers(0, 1, m_vpCBPerMipLevels[uMip].GetAddressOf());
 
 	// Dispatch
@@ -298,9 +300,9 @@ void Voxelizer::voxelizeSolidDP(const Method eVoxMethod, const uint8_t uMip)
 	m_pDXContext->Dispatch(GRID_SIZE / 32, GRID_SIZE / 16, GRID_SIZE);
 
 	// Unset
-	const auto vpNullUAVs = vLPDXUAV(pUAVs.size(), nullptr);
-	m_pDXContext->CSSetShaderResources(0, 1, &g_pNullSRV);
-	m_pDXContext->CSSetUnorderedAccessViews(0, static_cast<uint32_t>(vpNullUAVs.size()), vpNullUAVs.data(), &g_uNullUint);
+	const auto vpNullSRVs = vLPDXSRV(pSRVs.size(), nullptr);
+	m_pDXContext->CSSetShaderResources(0, static_cast<uint32_t>(vpNullSRVs.size()), vpNullSRVs.data());
+	m_pDXContext->CSSetUnorderedAccessViews(0, 1, &g_pNullUAV, &g_uNullUint);
 }
 
 void Voxelizer::renderPointArray()

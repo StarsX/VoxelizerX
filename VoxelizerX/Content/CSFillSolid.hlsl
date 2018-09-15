@@ -4,13 +4,12 @@
 
 #include "SharedConst.h"
 
-#define _TEST_	0
-
 cbuffer cbPerMipLevel
 {
 	float g_fGridSize;
 };
 
+Texture3D<min16float>	g_txGrid[3];
 Texture2DArray<uint>	g_txKBufDepth;
 RWTexture3D<min16float>	g_RWGrid;
 
@@ -21,47 +20,42 @@ RWTexture3D<min16float>	g_RWGrid;
 void main(uint3 DTid : SV_DispatchThreadID)
 {
 	min16float4 vData;
-	//vData.x = g_RWGrid[0][DTid];
-	//vData.y = g_RWGrid[1][DTid];
-	//vData.z = g_RWGrid[2][DTid];
-	//vData.w = g_RWGrid[3][DTid];
-	vData.w = g_RWGrid[DTid];
+	vData.x = g_txGrid[0][DTid];
+	vData.y = g_txGrid[1][DTid];
+	vData.z = g_txGrid[2][DTid];
+	vData.w = any(vData.xyz);
 
 	if (vData.w <= 0.0)
 	{
 		const uint uNumLayer = g_fGridSize * DEPTH_SCALE;
 
 		bool bFill = false;
-		uint uDepth, uDepthPrev = 0xffffffff;
+		uint uDepthBeg = 0xffffffff, uDepthEnd;
 
-#if _TEST_
-		for (uint i = 1; i < uNumLayer; ++i)
-		{
-			const uint3 vTex = { DTid.xy, i };
-			const uint uDepth = g_txKBufDepth[vTex];
-
-			if (uDepth == 0xffffffff) break;
-		}
-
-		uDepthPrev = g_txKBufDepth[uint3(DTid.xy, 0)];
-		uDepth = g_txKBufDepth[uint3(DTid.xy, i - 1)];
-
-		bFill = uDepthPrev != 0xffffffff && uDepthPrev < DTid.z;
-		bFill = bFill && (uDepth != 0xffffffff && uDepth > DTid.z);
-#else
 		for (uint i = 0; i < uNumLayer; ++i)
 		{
 			const uint3 vTex = { DTid.xy, i };
-			uDepth = g_txKBufDepth[vTex];
-
-			if (uDepth == 0xffffffff)
+			uDepthEnd = g_txKBufDepth[vTex];
+#ifdef _USE_NORMAL_
+			if (uDepthEnd > DTid.z) break;
+#else
+			if (uDepthEnd == 0xffffffff)
 			{
 				bFill = false;
 				break;
 			}
-			if (uDepth > DTid.z) break;
-			bFill = uDepthPrev == uDepth - 1 ? bFill : !bFill;
-			uDepthPrev = uDepth;
+			if (uDepthEnd > DTid.z) break;
+			bFill = uDepthBeg == uDepthEnd - 1 ? bFill : !bFill;
+#endif
+			uDepthBeg = uDepthEnd;
+		}
+
+#ifdef _USE_NORMAL_
+		if (uDepthBeg != 0xffffffff && uDepthEnd != 0xffffffff)
+		{
+			const min16float vNormBegZ = g_txGrid[2][uint3(DTid.xy, uDepthBeg)];
+			const min16float vNormEndZ = g_txGrid[2][uint3(DTid.xy, uDepthEnd)];
+			bFill = vNormBegZ < 0.0 || vNormEndZ > 0.0;
 		}
 #endif
 
