@@ -17,7 +17,7 @@ void DepthPeel(uint uDepth, uint2 vLoc, const uint uNumLayer)
 		const uint3 vTex = { vLoc, i };
 		InterlockedMin(g_RWKBufDepth[vTex], uDepth, uDepthPrev);
 
-		if (uDepthPrev == uDepth || uDepth == 0xffffffff) break;
+		if (uDepthPrev == uDepth || uDepthPrev == 0xffffffff) break;
 
 		uDepth = max(uDepth, uDepthPrev);
 	}
