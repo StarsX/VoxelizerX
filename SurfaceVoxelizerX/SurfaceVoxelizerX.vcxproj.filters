@@ -164,6 +164,12 @@
     <FxCompile Include="CSFillSolidEnc.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="PSTriProjDP.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PSTriProjUnionDP.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="XSDX\CHDataSize.hlsli">
@@ -173,6 +179,15 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="HSTriProj.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="CSMutex.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="PSTriProj.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="PSDepthPeel.hlsli">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
