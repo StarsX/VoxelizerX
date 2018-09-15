@@ -340,8 +340,8 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, const DXGI_SURFAC
 	const auto loadDSTask = g_pShader->CreateDomainShader(L"DSTriProj.cso", SurfaceVoxelizer::DS_TRI_PROJ);
 	auto loadPSTask = g_pShader->CreatePixelShader(L"PSTriProj.cso", SurfaceVoxelizer::PS_TRI_PROJ);
 	loadPSTask = loadPSTask && g_pShader->CreatePixelShader(L"PSTriProjUnion.cso", SurfaceVoxelizer::PS_TRI_PROJ_UNION);
-	loadPSTask = loadPSTask && g_pShader->CreatePixelShader(L"PSTriProjDP.cso", SurfaceVoxelizer::PS_TRI_PROJ_DP);
-	loadPSTask = loadPSTask && g_pShader->CreatePixelShader(L"PSTriProjUnionDP.cso", SurfaceVoxelizer::PS_TRI_PROJ_UNION_DP);
+	loadPSTask = loadPSTask && g_pShader->CreatePixelShader(L"PSTriProjSolid.cso", SurfaceVoxelizer::PS_TRI_PROJ_SOLID);
+	loadPSTask = loadPSTask && g_pShader->CreatePixelShader(L"PSTriProjUnionSolid.cso", SurfaceVoxelizer::PS_TRI_PROJ_UNION_SOLID);
 	loadPSTask = loadPSTask && g_pShader->CreatePixelShader(L"PSSimple.cso", SurfaceVoxelizer::PS_SIMPLE);
 	auto loadCSTask = g_pShader->CreateComputeShader(L"CSDownSample.cso", SurfaceVoxelizer::CS_DOWN_SAMPLE);
 	loadCSTask = loadCSTask && g_pShader->CreateComputeShader(L"CSFillSolid.cso", SurfaceVoxelizer::CS_FILL_SOLID);

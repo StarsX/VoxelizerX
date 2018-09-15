@@ -3,4 +3,4 @@
 //--------------------------------------------------------------------------------------
 
 #define _CONSERVATIVE_
-#include "PSTriProjUnionDP.hlsl"
+#include "PSTriProjUnionSolid.hlsl"

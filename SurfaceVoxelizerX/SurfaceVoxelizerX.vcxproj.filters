@@ -164,13 +164,13 @@
     <FxCompile Include="CSFillSolidEnc.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="PSTriProjDP.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="PSTriProjUnionDP.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="CSFillSolidDP.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PSTriProjSolid.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PSTriProjUnionSolid.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

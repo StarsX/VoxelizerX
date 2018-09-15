@@ -41,8 +41,8 @@ public:
 	{
 		PS_TRI_PROJ,
 		PS_TRI_PROJ_UNION,
-		PS_TRI_PROJ_DP,
-		PS_TRI_PROJ_UNION_DP,
+		PS_TRI_PROJ_SOLID,
+		PS_TRI_PROJ_UNION_SOLID,
 		PS_SIMPLE
 	};
 
@@ -103,7 +103,7 @@ protected:
 	void createVB(const uint32_t uNumVert, const uint32_t uStride, const uint8_t *pData);
 	void createIB(const uint32_t uNumIndices, const uint32_t *pData);
 	void createCBs();
-	void voxelize(const Method eVoxMethod, const bool bDepthPeel = false, const uint8_t uMip = 0);
+	void voxelize(const Method eVoxMethod, const bool bSolid = false, const uint8_t uMip = 0);
 	void voxelizeSolid(const Method eVoxMethod);
 	void voxelizeSolidDP(const Method eVoxMethod, const uint8_t uMip = 0);
 	void downSample(const uint32_t i);

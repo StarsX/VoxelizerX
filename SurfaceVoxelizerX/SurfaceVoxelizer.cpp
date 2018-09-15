@@ -181,7 +181,7 @@ void SurfaceVoxelizer::createCBs()
 	}
 }
 
-void SurfaceVoxelizer::voxelize(const Method eVoxMethod, const bool bDepthPeel, const uint8_t uMip)
+void SurfaceVoxelizer::voxelize(const Method eVoxMethod, const bool bSolid, const uint8_t uMip)
 {
 	auto pRTV = CPDXRenderTargetView();
 	auto pDSV = CPDXDepthStencilView();
@@ -212,12 +212,12 @@ void SurfaceVoxelizer::voxelize(const Method eVoxMethod, const bool bDepthPeel, 
 	for (auto i = 0ui8; i < 4; ++i)
 		m_pDXContext->ClearUnorderedAccessViewFloat(m_pTxGrids.array[i]->GetUAV(uMip).Get(), DirectX::Colors::Transparent);
 	m_pDXContext->ClearUnorderedAccessViewUint(m_pTxUint->GetUAV().Get(), XMVECTORU32{ 0 }.u);
-	if (bDepthPeel) m_pDXContext->ClearUnorderedAccessViewUint(m_pTxKBufferDepth->GetUAV().Get(), XMVECTORU32{ UINT32_MAX }.u);
+	if (bSolid) m_pDXContext->ClearUnorderedAccessViewUint(m_pTxKBufferDepth->GetUAV().Get(), XMVECTORU32{ UINT32_MAX }.u);
 	
 	m_pDXContext->VSSetConstantBuffers(0, 1, m_pCBBound.GetAddressOf());
 
-	const auto uPSTriProj = bDepthPeel ? PS_TRI_PROJ_DP : PS_TRI_PROJ;
-	const auto uPSTriProjUnion = bDepthPeel ? PS_TRI_PROJ_UNION_DP : PS_TRI_PROJ_UNION;
+	const auto uPSTriProj = bSolid ? PS_TRI_PROJ_SOLID : PS_TRI_PROJ;
+	const auto uPSTriProjUnion = bSolid ? PS_TRI_PROJ_UNION_SOLID : PS_TRI_PROJ_UNION;
 
 	switch (eVoxMethod)
 	{
