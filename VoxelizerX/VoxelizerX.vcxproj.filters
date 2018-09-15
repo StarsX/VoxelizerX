@@ -7,43 +7,49 @@
     </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="Common">
-      <UniqueIdentifier>{4db027a8-16b5-4477-90fc-ad4034b31478}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shaders">
-      <UniqueIdentifier>{3d6ef830-95bc-40c4-9ffc-13bd9294e2bc}</UniqueIdentifier>
+      <UniqueIdentifier>{b55b9a65-0b8e-44af-9946-eb6cea7ced4d}</UniqueIdentifier>
     </Filter>
     <Filter Include="XSDX">
-      <UniqueIdentifier>{b1782712-9e00-4a0e-bf17-eed010bebf43}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="XSDX\Source Files">
-      <UniqueIdentifier>{51e5344e-c87d-4c05-9dc1-2f043f835b42}</UniqueIdentifier>
+      <UniqueIdentifier>{db4855ca-7742-4839-b517-bbfd7735729c}</UniqueIdentifier>
     </Filter>
     <Filter Include="XSDX\Header Files">
-      <UniqueIdentifier>{1ff64dfb-3d60-461d-9062-2087654e8e6c}</UniqueIdentifier>
+      <UniqueIdentifier>{3db207c0-c696-4e17-85d3-98ddbbfd96c8}</UniqueIdentifier>
     </Filter>
     <Filter Include="XSDX\Shader Files">
-      <UniqueIdentifier>{096d993e-d115-46a0-ae52-a51b90af2b28}</UniqueIdentifier>
+      <UniqueIdentifier>{c7672617-1379-4d67-9d18-24e2e817c8fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XSDX\Source Files">
+      <UniqueIdentifier>{c4f4a335-7e36-4913-8c3f-c2fb0b8077d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{99952eb5-43c2-4d26-9f4c-706fdb76073b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
+    <ClInclude Include="Resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SurfaceVoxelizerX.h">
+    <ClInclude Include="VoxelizerX.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\DirectXHelper.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="XSDX\XSDXResource.h">
+      <Filter>XSDX\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="XSDX\XSDXShader.h">
       <Filter>XSDX\Header Files</Filter>
@@ -60,28 +66,25 @@
     <ClInclude Include="XSDX\XSDXType.h">
       <Filter>XSDX\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Common\DirectXHelper.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="SurfaceVoxelizer.h">
+    <ClInclude Include="Content\Voxelizer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ObjLoader.h">
+    <ClInclude Include="Content\ObjLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SharedConst.h">
+    <ClInclude Include="Content\SharedConst.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XSDX\XSDXResource.h">
-      <Filter>XSDX\Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="SurfaceVoxelizerX.cpp">
+    <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VoxelizerX.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="XSDX\XSDXResource.cpp">
+      <Filter>XSDX\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="XSDX\XSDXShader.cpp">
       <Filter>XSDX\Source Files</Filter>
@@ -89,21 +92,15 @@
     <ClCompile Include="XSDX\XSDXState.cpp">
       <Filter>XSDX\Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SurfaceVoxelizer.cpp">
+    <ClCompile Include="Content\Voxelizer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ObjLoader.cpp">
+    <ClCompile Include="Content\ObjLoader.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="XSDX\XSDXResource.cpp">
-      <Filter>XSDX\Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="SurfaceVoxelizerX.rc">
+    <ResourceCompile Include="VoxelizerX.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
@@ -111,87 +108,75 @@
     <Image Include="small.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="SurfaceVoxelizerX.ico">
+    <Image Include="VoxelizerX.ico">
       <Filter>Resource Files</Filter>
     </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="VSPointArray.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="PSSimple.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="VSBoxArray.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="HSTriProj.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="DSTriProj.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="CSRayCast.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="VSTriProjTess.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="CSDownSample.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="CSFillSolid.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="PSTriProjUnion.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="VSTriProjUnion.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="VSTriProj.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="PSTriProj.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="CSGenDirTable.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="CSDownSampleEnc.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="CSFillSolidEnc.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="CSFillSolidDP.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="PSTriProjSolid.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="PSTriProjUnionSolid.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="XSDX\CHDataSize.hlsli">
       <Filter>XSDX\Shader Files</Filter>
     </None>
-    <None Include="DSTriProj.hlsli">
+    <None Include="Content\CSMutex.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="HSTriProj.hlsli">
+    <None Include="Content\CSPackedFP16.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="CSMutex.hlsli">
+    <None Include="Content\DSTriProj.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="PSTriProj.hlsli">
+    <None Include="Content\HSTriProj.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="PSDepthPeel.hlsli">
+    <None Include="Content\PSDepthPeel.hlsli">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Content\PSTriProj.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Content\CSRayCast.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\DSTriProj.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\HSTriProj.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\PSSimple.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\PSTriProj.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\PSTriProjUnion.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\VSBoxArray.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\VSPointArray.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\VSTriProj.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\VSTriProjTess.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\VSTriProjUnion.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\PSTriProjSolid.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\PSTriProjUnionSolid.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\CSFillSolid.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

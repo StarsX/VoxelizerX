@@ -8,7 +8,7 @@
 #include "XSDXState.h"
 #include "XSDXResource.h"
 
-class SurfaceVoxelizer
+class Voxelizer
 {
 public:
 	enum Method				: uint32_t
@@ -48,17 +48,12 @@ public:
 
 	enum ComputeShaderID	: uint32_t
 	{
-		CS_DOWN_SAMPLE,
 		CS_FILL_SOLID,
-		CS_GEN_DIR,
-		CS_DOWN_SAMPLE_ENC,
-		CS_FILL_SOLID_ENC,
-		CS_FILL_SOLID_DP,
 		CS_RAY_CAST
 	};
 
-	SurfaceVoxelizer(const XSDX::CPDXDevice &pDXDevice, const XSDX::spShader &pShader, const XSDX::spState &pState);
-	virtual ~SurfaceVoxelizer();
+	Voxelizer(const XSDX::CPDXDevice &pDXDevice, const XSDX::spShader &pShader, const XSDX::spState &pState);
+	virtual ~Voxelizer();
 
 	void Init(const uint32_t uWidth, const uint32_t uHeight, const char *szFileName = "Media\\bunny.obj");
 	void UpdateFrame(DirectX::CXMVECTOR vEyePt, DirectX::CXMMATRIX mViewProj);
@@ -103,14 +98,8 @@ protected:
 	void createVB(const uint32_t uNumVert, const uint32_t uStride, const uint8_t *pData);
 	void createIB(const uint32_t uNumIndices, const uint32_t *pData);
 	void createCBs();
-	void voxelize(const Method eVoxMethod, const bool bSolid = false, const uint8_t uMip = 0);
-	void voxelizeSolid(const Method eVoxMethod);
+	void voxelize(const Method eVoxMethod, const bool bDepthPeel = false, const uint8_t uMip = 0);
 	void voxelizeSolidDP(const Method eVoxMethod, const uint8_t uMip = 0);
-	void downSample(const uint32_t i);
-	void fillSolid(const uint32_t i);
-	void voxelizeSolidEnc(const Method eVoxMethod);
-	void downSampleEnc(const uint32_t i);
-	void fillSolidEnc(const uint32_t i);
 	void renderPointArray();
 	void renderBoxArray();
 	void renderRayCast(const XSDX::CPDXUnorderedAccessView &pUAVSwapChain);
@@ -145,7 +134,7 @@ protected:
 	static XSDX::CPDXInputLayout	m_pVertexLayout;
 };
 
-using upSurfaceVoxelizer = std::unique_ptr<SurfaceVoxelizer>;
-using spSurfaceVoxelizer = std::shared_ptr<SurfaceVoxelizer>;
+using upSurfaceVoxelizer = std::unique_ptr<Voxelizer>;
+using spSurfaceVoxelizer = std::shared_ptr<Voxelizer>;
 using vuSurfaceVoxelizer = std::vector<upSurfaceVoxelizer>;
 using vpSurfaceVoxelizer = std::vector<spSurfaceVoxelizer>;
