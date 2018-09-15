@@ -132,7 +132,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	deviceSettings.d3d11.sd.BufferDesc.Height = 960;
 	deviceSettings.d3d11.sd.Windowed = true;
 	deviceSettings.d3d11.sd.BufferUsage |= DXGI_USAGE_UNORDERED_ACCESS;
-	//deviceSettings.d3d11.DriverType = D3D_DRIVER_TYPE_WARP;
+	deviceSettings.d3d11.DriverType = D3D_DRIVER_TYPE_WARP;
 
 	DXUTCreateDeviceFromSettings(&deviceSettings);
 	//DXUTCreateDevice(D3D_FEATURE_LEVEL_11_0, true, 1280, 960);
@@ -348,6 +348,7 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, const DXGI_SURFAC
 	loadCSTask = loadCSTask && g_pShader->CreateComputeShader(L"CSGenDirTable.cso", SurfaceVoxelizer::CS_GEN_DIR);
 	loadCSTask = loadCSTask && g_pShader->CreateComputeShader(L"CSDownSampleEnc.cso", SurfaceVoxelizer::CS_DOWN_SAMPLE_ENC);
 	loadCSTask = loadCSTask && g_pShader->CreateComputeShader(L"CSFillSolidEnc.cso", SurfaceVoxelizer::CS_FILL_SOLID_ENC);
+	loadCSTask = loadCSTask && g_pShader->CreateComputeShader(L"CSFillSolidDP.cso", SurfaceVoxelizer::CS_FILL_SOLID_DP);
 	loadCSTask = loadCSTask && g_pShader->CreateComputeShader(L"CSRayCast.cso", SurfaceVoxelizer::CS_RAY_CAST);
 
 	const auto createShaderTask = loadVSTask && loadHSTask && loadDSTask && loadPSTask && loadCSTask;

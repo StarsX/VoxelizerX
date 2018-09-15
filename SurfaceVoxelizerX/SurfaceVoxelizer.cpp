@@ -63,7 +63,7 @@ void SurfaceVoxelizer::Init(const uint32_t uWidth, const uint32_t uHeight, const
 	//m_pTxUint->CreateSubSRVs();
 
 	m_pTxKBufferDepth = make_unique<Texture2D>(m_pDXDevice);
-	m_pTxKBufferDepth->Create(GRID_SIZE, GRID_SIZE, static_cast<uint32_t>(GRID_SIZE * 0.5), DXGI_FORMAT_R32_UINT);
+	m_pTxKBufferDepth->Create(GRID_SIZE, GRID_SIZE, static_cast<uint32_t>(GRID_SIZE * DEPTH_SCALE), DXGI_FORMAT_R32_UINT);
 }
 
 void SurfaceVoxelizer::UpdateFrame(DirectX::CXMVECTOR vEyePt, DirectX::CXMMATRIX mViewProj)
@@ -113,7 +113,8 @@ void SurfaceVoxelizer::Render(const Method eVoxMethod)
 
 void SurfaceVoxelizer::Render(const CPDXUnorderedAccessView &pUAVSwapChain, const Method eVoxMethod)
 {
-	voxelizeSolid(eVoxMethod);
+	//voxelizeSolid(eVoxMethod);
+	voxelizeSolidDP(eVoxMethod);
 	//voxelizeSolidEnc(eVoxMethod);
 	//voxelize(eVoxMethod);
 
@@ -241,7 +242,6 @@ void SurfaceVoxelizer::voxelize(const Method eVoxMethod, const bool bDepthPeel, 
 		break;
 
 	case TRI_PROJ_UNION:
-		m_pDXContext->DSSetConstantBuffers(0, 1, m_vpCBPerMipLevels[uMip].GetAddressOf());
 		m_pDXContext->PSSetConstantBuffers(0, 1, m_vpCBPerMipLevels[uMip].GetAddressOf());
 
 		m_pDXContext->IASetInputLayout(m_pVertexLayout.Get());
@@ -295,6 +295,32 @@ void SurfaceVoxelizer::voxelizeSolid(const Method eVoxMethod)
 		for (auto i = uIter; i > 0; --i) fillSolid(i);
 	t = (t + 1) % 256;
 	//fillSolid(0);
+}
+
+void SurfaceVoxelizer::voxelizeSolidDP(const Method eVoxMethod, const uint8_t uMip)
+{
+	voxelize(eVoxMethod, true, uMip);
+
+	// Setup
+	const auto pUAVs =
+	{
+		//m_pTxGrids.x->GetUAV().Get(),
+		//m_pTxGrids.y->GetUAV().Get(),
+		//m_pTxGrids.z->GetUAV().Get(),
+		m_pTxGrids.w->GetUAV().Get()
+	};
+	m_pDXContext->CSSetUnorderedAccessViews(0, static_cast<uint32_t>(pUAVs.size()), pUAVs.begin(), &g_uNullUint);
+	m_pDXContext->CSSetShaderResources(0, 1, m_pTxKBufferDepth->GetSRV().GetAddressOf());
+	m_pDXContext->CSSetConstantBuffers(0, 1, m_vpCBPerMipLevels[uMip].GetAddressOf());
+
+	// Dispatch
+	m_pDXContext->CSSetShader(m_pShader->GetComputeShader(CS_FILL_SOLID_DP).Get(), nullptr, 0);
+	m_pDXContext->Dispatch(GRID_SIZE / 32, GRID_SIZE / 16, GRID_SIZE);
+
+	// Unset
+	const auto vpNullUAVs = vLPDXUAV(pUAVs.size(), nullptr);
+	m_pDXContext->CSSetShaderResources(0, 1, &g_pNullSRV);
+	m_pDXContext->CSSetUnorderedAccessViews(0, static_cast<uint32_t>(vpNullUAVs.size()), vpNullUAVs.data(), &g_uNullUint);
 }
 
 void SurfaceVoxelizer::downSample(const uint32_t i)

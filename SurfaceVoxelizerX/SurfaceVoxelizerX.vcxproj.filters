@@ -170,6 +170,9 @@
     <FxCompile Include="PSTriProjUnionDP.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="CSFillSolidDP.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="XSDX\CHDataSize.hlsli">
