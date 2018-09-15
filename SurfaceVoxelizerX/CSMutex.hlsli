@@ -6,6 +6,10 @@
 #define	U_MUTEX			u4
 #endif
 
+#ifndef RWTexture
+#define	RWTexture		RWTexture3D
+#endif
+
 #define	mutexLock(x)	{	\
 							uint uLock;				\
 							[allow_uav_condition]	\
@@ -21,4 +25,4 @@
 							}	\
 						}
 
-RWTexture3D<uint>		g_RWMutex	: register (U_MUTEX);
+RWTexture<uint>	g_RWMutex	: register (U_MUTEX);

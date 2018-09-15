@@ -11,7 +11,7 @@ cbuffer cbPerMipLevel
 	float g_fGridSize;
 };
 
-Texture3D<uint>			g_txKBufDepth;
+Texture2DArray<uint>	g_txKBufDepth;
 RWTexture3D<min16float>	g_RWGrid;
 
 //--------------------------------------------------------------------------------------
@@ -35,8 +35,7 @@ void main(uint3 DTid : SV_DispatchThreadID)
 		uint uDepth, uDepthPrev = 0xffffffff;
 
 #if _TEST_
-		//[allow_uav_condition]
-		for (uint i = 1; i < 32; ++i)
+		for (uint i = 1; i < uNumLayer; ++i)
 		{
 			const uint3 vTex = { DTid.xy, i };
 			const uint uDepth = g_txKBufDepth[vTex];
@@ -50,7 +49,6 @@ void main(uint3 DTid : SV_DispatchThreadID)
 		bFill = uDepthPrev != 0xffffffff && uDepthPrev < DTid.z;
 		bFill = bFill && (uDepth != 0xffffffff && uDepth > DTid.z);
 #else
-		//[allow_uav_condition]
 		for (uint i = 0; i < uNumLayer; ++i)
 		{
 			const uint3 vTex = { DTid.xy, i };
