@@ -36,7 +36,7 @@ void main(uint3 DTid : SV_DispatchThreadID)
 		{
 			const uint3 vTex = { DTid.xy, i };
 			uDepthEnd = g_txKBufDepth[vTex];
-#ifdef _USE_NORMAL_
+#if	USE_NORMAL
 			if (uDepthEnd > DTid.z) break;
 #else
 			if (uDepthEnd == 0xffffffff)
@@ -50,7 +50,7 @@ void main(uint3 DTid : SV_DispatchThreadID)
 			uDepthBeg = uDepthEnd;
 		}
 
-#ifdef _USE_NORMAL_
+#if	USE_NORMAL
 		if (uDepthBeg != 0xffffffff && uDepthEnd != 0xffffffff)
 		{
 			const min16float vNormBegZ = g_txGrid[2][uint3(DTid.xy, uDepthBeg)];
