@@ -15,9 +15,15 @@
 
 static const uint g_uStrideVB = SIZE_OF_FLOAT3 * 2;
 
+//--------------------------------------------------------------------------------------
+// Buffers
+//--------------------------------------------------------------------------------------
 ByteAddressBuffer g_roIndices;
 ByteAddressBuffer g_roVertices;
 
+//--------------------------------------------------------------------------------------
+// Load IA
+//--------------------------------------------------------------------------------------
 VSIn LoadVSIn(const uint uIdx)
 {
 	VSIn result;
@@ -30,6 +36,9 @@ VSIn LoadVSIn(const uint uIdx)
 	return result;
 }
 
+//--------------------------------------------------------------------------------------
+// Emulate the behaviors of VS, HS, and DS
+//--------------------------------------------------------------------------------------
 DSOut main(const uint vID : SV_VertexID, const uint vPrimID : SV_InstanceID)
 {
 	DSOut output;

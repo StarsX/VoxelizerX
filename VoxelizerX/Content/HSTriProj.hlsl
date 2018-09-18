@@ -4,6 +4,9 @@
 
 #define NUM_CONTROL_POINTS	3
 
+//--------------------------------------------------------------------------------------
+// Structs
+//--------------------------------------------------------------------------------------
 // Input control point
 struct VSOut
 {
@@ -21,7 +24,9 @@ struct HSConstDataOut
 	float InsideTessFactor	: SV_InsideTessFactor;	// e.g. would be Inside[2] for a quad domain
 };
 
+//--------------------------------------------------------------------------------------
 // Patch Constant Function
+//--------------------------------------------------------------------------------------
 HSConstDataOut CalcHSPatchConstants()
 {
 	HSConstDataOut Output;
@@ -33,6 +38,9 @@ HSConstDataOut CalcHSPatchConstants()
 	return Output;
 }
 
+//--------------------------------------------------------------------------------------
+// Select the view with maximal projected AABB
+//--------------------------------------------------------------------------------------
 [domain("tri")]
 [partitioning("integer")]
 [outputtopology("triangle_cw")]

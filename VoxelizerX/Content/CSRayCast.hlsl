@@ -43,7 +43,7 @@ static const min16float g_fLStepScale = g_fMaxDist / NUM_LIGHT_SAMPLES;
 Texture3D<min16float>		g_txGrid	: register (t0);
 
 //--------------------------------------------------------------------------------------
-// RW textures
+// Unordered access textures
 //--------------------------------------------------------------------------------------
 RWTexture2D<min16float4>	g_rwPresent	: register (u0);
 

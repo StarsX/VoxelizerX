@@ -2,6 +2,9 @@
 // By XU, Tianchen
 //--------------------------------------------------------------------------------------
 
+//--------------------------------------------------------------------------------------
+// Struct
+//--------------------------------------------------------------------------------------
 // Output control point
 struct HSOut
 {
@@ -11,6 +14,9 @@ struct HSOut
 	float3	TexLoc	: TEXLOCATION;
 };
 
+//--------------------------------------------------------------------------------------
+// Calculate projected triangle sizes (equivalent to area) for 3 views
+//--------------------------------------------------------------------------------------
 float3 PrimSize(VSOut ip[NUM_CONTROL_POINTS])
 {
 	// Calculate projected edges of 3-views respectively
@@ -25,6 +31,9 @@ float3 PrimSize(VSOut ip[NUM_CONTROL_POINTS])
 	return float3(fSizeXY, fSizeYZ, fSizeZX);
 }
 
+//--------------------------------------------------------------------------------------
+// Project to 3-views
+//--------------------------------------------------------------------------------------
 float2 Project(const float3 vPos, const float3 vPrimSize)
 {
 	const float fSizeXY = vPrimSize.x;
@@ -36,6 +45,9 @@ float2 Project(const float3 vPos, const float3 vPrimSize)
 		(fSizeYZ > fSizeZX ? vPos.yz : vPos.zx);
 }
 
+//--------------------------------------------------------------------------------------
+// Select the view with maximal projected AABB
+//--------------------------------------------------------------------------------------
 HSOut HSMain(const float2 vPos, const InputPatch<VSOut, NUM_CONTROL_POINTS> ip, const uint i)
 {
 	HSOut output;

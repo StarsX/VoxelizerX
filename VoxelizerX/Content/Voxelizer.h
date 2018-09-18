@@ -134,7 +134,7 @@ protected:
 	static XSDX::CPDXInputLayout	m_pVertexLayout;
 };
 
-using upSurfaceVoxelizer = std::unique_ptr<Voxelizer>;
-using spSurfaceVoxelizer = std::shared_ptr<Voxelizer>;
-using vuSurfaceVoxelizer = std::vector<upSurfaceVoxelizer>;
-using vpSurfaceVoxelizer = std::vector<spSurfaceVoxelizer>;
+using upVoxelizer = std::unique_ptr<Voxelizer>;
+using spVoxelizer = std::shared_ptr<Voxelizer>;
+using vuVoxelizer = std::vector<upVoxelizer>;
+using vpVoxelizer = std::vector<spVoxelizer>;

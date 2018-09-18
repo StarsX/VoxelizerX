@@ -6,6 +6,9 @@
 
 #include "DSTriProj.hlsli"
 
+//--------------------------------------------------------------------------------------
+// Struct
+//--------------------------------------------------------------------------------------
 // Output patch constant data.
 struct HSConstDataOut
 {
@@ -13,6 +16,9 @@ struct HSConstDataOut
 	float InsideTessFactor	: SV_InsideTessFactor;	// e.g. would be Inside[2] for a quad domain
 };
 
+//--------------------------------------------------------------------------------------
+// Perform triangle extrapolations
+//--------------------------------------------------------------------------------------
 [domain("tri")]
 DSOut main(HSConstDataOut input,
 	float3 domain : SV_DomainLocation,
