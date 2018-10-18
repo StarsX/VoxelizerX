@@ -8,6 +8,8 @@
 #include "XSDXShader.h"
 #include "XSDXShaderCommon.h"
 
+#define	D3D11_BIND_PACKED_UAV	(D3D11_BIND_UNORDERED_ACCESS | 0x8000)
+
 namespace XSDX
 {
 	class Resource
@@ -40,15 +42,17 @@ namespace XSDX
 		virtual ~Texture2D();
 		void Create(const uint32_t uWidth, const uint32_t uHeight,
 			const uint32_t uArraySize, const DXGI_FORMAT eFormat,
-			const uint8_t uBindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS,
+			uint32_t uBindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS,
 			const uint8_t uMips = 1, const lpcvoid pInitialData = nullptr,
 			const uint8_t uStride = sizeof(float), const D3D11_USAGE eUsage = D3D11_USAGE_DEFAULT);
 		void Create(const uint32_t uWidth, const uint32_t uHeight, const DXGI_FORMAT eFormat,
-			const uint8_t uBindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS,
+			const uint32_t uBindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS,
 			const uint8_t uMips = 1, const lpcvoid pInitialData = nullptr,
 			const uint8_t uStride = sizeof(float), const D3D11_USAGE eUsage = D3D11_USAGE_DEFAULT);
-		void CreateSRV(const uint32_t uArraySize, const uint8_t uSamples = 1, const uint8_t uMips = 1);
-		void CreateUAV(const uint32_t uArraySize, const uint8_t uMips = 1);
+		void CreateSRV(const uint32_t uArraySize, const DXGI_FORMAT eFormat = DXGI_FORMAT_UNKNOWN,
+			const uint8_t uSamples = 1, const uint8_t uMips = 1);
+		void CreateUAV(const uint32_t uArraySize, const DXGI_FORMAT eFormat = DXGI_FORMAT_UNKNOWN,
+			const uint8_t uMips = 1);
 		void CreateSubSRVs();
 
 		const CPDXTexture2D				&GetTexture() const;
@@ -76,12 +80,12 @@ namespace XSDX
 		virtual ~RenderTarget();
 		void Create(const uint32_t uWidth, const uint32_t uHeight, const uint32_t uArraySize,
 			const DXGI_FORMAT eFormat, const uint8_t uSamples = 1, const uint8_t uMips = 1,
-			const uint8_t uBindFlags = 0);
+			const uint32_t uBindFlags = 0);
 		void Create(const uint32_t uWidth, const uint32_t uHeight, const DXGI_FORMAT eFormat,
-			const uint8_t uSamples = 1, const uint8_t uMips = 1, const uint8_t uBindFlags = 0);
+			const uint8_t uSamples = 1, const uint8_t uMips = 1, const uint32_t uBindFlags = 0);
 		void CreateArray(const uint32_t uWidth, const uint32_t uHeight, const uint32_t uArraySize,
 			const DXGI_FORMAT eFormat, const uint8_t uSamples = 1, const uint8_t uMips = 1,
-			const uint8_t uBindFlags = 0);
+			const uint32_t uBindFlags = 0);
 		void Populate(const CPDXShaderResourceView &pSRVSrc, const spShader &pShader,
 			const uint8_t uSRVSlot = 0, const uint8_t uSlice = 0, const uint8_t uMip = 0);
 
@@ -90,7 +94,7 @@ namespace XSDX
 		const uint8_t					GetNumMips(const uint8_t uSlice = 0) const;
 	protected:
 		void create(const uint32_t uWidth, const uint32_t uHeight, const uint32_t uArraySize,
-			const DXGI_FORMAT eFormat, const uint8_t uSamples, const uint8_t uMips, const uint8_t uBindFlags);
+			const DXGI_FORMAT eFormat, const uint8_t uSamples, const uint8_t uMips, uint32_t uBindFlags);
 		using vvCPDXRTV = std::vector<vCPDXRTV>;
 		vvCPDXRTV						m_vvpRTVs;
 	};
@@ -108,17 +112,19 @@ namespace XSDX
 		DepthStencil(const CPDXDevice &pDXDevice);
 		virtual ~DepthStencil();
 		void Create(const uint32_t uWidth, const uint32_t uHeight, const uint32_t uArraySize,
-			const DXGI_FORMAT eFormat = DXGI_FORMAT_D32_FLOAT, const uint8_t uBindFlags = 0,
+			const DXGI_FORMAT eFormat = DXGI_FORMAT_D32_FLOAT, const uint32_t uBindFlags = 0,
 			const uint8_t uSamples = 1, const uint8_t uMips = 1);
 		void Create(const uint32_t uWidth, const uint32_t uHeight, const DXGI_FORMAT eFormat = DXGI_FORMAT_D32_FLOAT,
-			const uint8_t uBindFlags = 0, const uint8_t uSamples = 1, const uint8_t uMips = 1);
+			const uint32_t uBindFlags = 0, const uint8_t uSamples = 1, const uint8_t uMips = 1);
 
 		const CPDXDepthStencilView		&GetDSV(const uint8_t uMip = 0) const;
 		const CPDXDepthStencilView		&GetDSVRO(const uint8_t uMip = 0) const;
+		const CPDXShaderResourceView	&GetSRVStencil() const;
 		const uint8_t					GetNumMips() const;
 	protected:
 		vCPDXDSV						m_vpDSVs;
 		vCPDXDSV						m_vpDSVROs;
+		CPDXShaderResourceView			m_pSRVStencil;
 	};
 
 	using upDepthStencil = std::unique_ptr<DepthStencil>;
@@ -134,7 +140,7 @@ namespace XSDX
 		Texture3D(const CPDXDevice &pDXDevice);
 		virtual ~Texture3D();
 		void Create(const uint32_t uWidth, const uint32_t uHeight, const uint32_t uDepth,
-			const DXGI_FORMAT eFormat, const uint8_t uBindFlags =
+			const DXGI_FORMAT eFormat, uint32_t uBindFlags =
 			D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS,
 			const uint8_t uMips = 1, const lpcvoid pInitialData = nullptr,
 			const uint8_t uStride = sizeof(float),
@@ -165,7 +171,7 @@ namespace XSDX
 		RawBuffer(const CPDXDevice &pDXDevice);
 		virtual ~RawBuffer();
 		void Create(const uint32_t uByteWidth,
-			const uint8_t uBindFlags = D3D11_BIND_SHADER_RESOURCE,
+			const uint32_t uBindFlags = D3D11_BIND_SHADER_RESOURCE,
 			const lpcvoid pInitialData = nullptr,
 			const uint8_t uUAVFlags = D3D11_BUFFER_UAV_FLAG_RAW,
 			const D3D11_USAGE eUsage = D3D11_USAGE_DEFAULT);
@@ -191,7 +197,7 @@ namespace XSDX
 		TypedBuffer(const CPDXDevice &pDXDevice);
 		virtual ~TypedBuffer();
 		void Create(const uint32_t uNumElements, const uint32_t uStride, const DXGI_FORMAT eFormat,
-			const uint8_t uBindFlags = D3D11_BIND_SHADER_RESOURCE, const lpcvoid pInitialData = nullptr,
+			const uint32_t uBindFlags = D3D11_BIND_SHADER_RESOURCE, const lpcvoid pInitialData = nullptr,
 			const uint8_t uUAVFlags = 0, const D3D11_USAGE eUsage = D3D11_USAGE_DEFAULT);
 		void CreateSRV(const uint32_t uNumElements, const DXGI_FORMAT eFormat);
 	};
@@ -209,7 +215,7 @@ namespace XSDX
 		StructuredBuffer(const CPDXDevice &pDXDevice);
 		virtual ~StructuredBuffer();
 		void Create(const uint32_t uNumElements, const uint32_t uStride,
-			const uint8_t uBindFlags = D3D11_BIND_SHADER_RESOURCE, const lpcvoid pInitialData = nullptr,
+			const uint32_t uBindFlags = D3D11_BIND_SHADER_RESOURCE, const lpcvoid pInitialData = nullptr,
 			const uint8_t uUAVFlags = 0, const D3D11_USAGE eUsage = D3D11_USAGE_DEFAULT);
 		void CreateSRV(const uint32_t uNumElements);
 	};
