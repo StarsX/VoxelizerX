@@ -96,7 +96,7 @@ void Texture2D::Create(const uint32_t uWidth, const uint32_t uHeight, const uint
 	const lpcvoid pInitialData, const uint8_t uStride, const D3D11_USAGE eUsage)
 {
 	const auto bPacked = static_cast<bool>(uBindFlags & D3D11_BIND_PACKED_UAV);
-	uBindFlags &= ~D3D11_BIND_PACKED_UAV;
+	uBindFlags &= D3D11_REMOVE_PACKED_UAV;
 
 	// Map formats
 	auto eFmtTexture = eFormat;
@@ -345,7 +345,7 @@ void RenderTarget::create(const uint32_t uWidth, const uint32_t uHeight, const u
 	const DXGI_FORMAT eFormat, const uint8_t uSamples, const uint8_t uMips, uint32_t uBindFlags)
 {
 	const auto bPacked = static_cast<bool>(uBindFlags & D3D11_BIND_PACKED_UAV);
-	uBindFlags &= ~D3D11_BIND_PACKED_UAV;
+	uBindFlags &= D3D11_REMOVE_PACKED_UAV;
 
 	// Map formats
 	auto eFmtTexture = eFormat;
@@ -522,7 +522,7 @@ void Texture3D::Create(const uint32_t uWidth, const uint32_t uHeight, const uint
 	const lpcvoid pInitialData, const uint8_t uStride, const D3D11_USAGE eUsage)
 {
 	const auto bPacked = static_cast<bool>(uBindFlags & D3D11_BIND_PACKED_UAV);
-	uBindFlags &= ~D3D11_BIND_PACKED_UAV;
+	uBindFlags &= D3D11_REMOVE_PACKED_UAV;
 
 	// Map formats
 	auto eFmtTexture = eFormat;
@@ -712,7 +712,7 @@ void TypedBuffer::Create(const uint32_t uNumElements, const uint32_t uStride,
 	const uint8_t uUAVFlags, const D3D11_USAGE eUsage)
 {
 	const auto bPacked = static_cast<bool>(uBindFlags & D3D11_BIND_PACKED_UAV);
-	uBindFlags &= ~D3D11_BIND_PACKED_UAV;
+	uBindFlags &= D3D11_REMOVE_PACKED_UAV;
 
 	// Map formats
 	auto eFmtBuffer = eFormat;

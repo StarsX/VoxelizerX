@@ -9,6 +9,7 @@
 #include "XSDXShaderCommon.h"
 
 #define	D3D11_BIND_PACKED_UAV	(D3D11_BIND_UNORDERED_ACCESS | 0x8000)
+#define	D3D11_REMOVE_PACKED_UAV	(~0x8000)
 
 namespace XSDX
 {
