@@ -4,6 +4,8 @@
 
 #include "XSDXResource.h"
 
+#define	D3D11_REMOVE_PACKED_UAV	(~0x8000)
+
 using namespace DirectX;
 using namespace DX;
 using namespace XSDX;
