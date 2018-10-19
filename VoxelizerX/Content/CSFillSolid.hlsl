@@ -75,11 +75,12 @@ void main(uint3 DTid : SV_DispatchThreadID)
 #if	USE_MUTEX
 			const min16float vNormBegZ = g_txGrids[2][uint3(DTid.xy, uDepthBeg)];
 			const min16float vNormEndZ = g_txGrids[2][uint3(DTid.xy, uDepthEnd)];
+			bFill = vNormBegZ < 0.0 || vNormEndZ > 0.0;
 #else
 			const float vNormBegZ = unpack(g_RWGrid[uint3(DTid.xy, uDepthBeg)]).z;
 			const float vNormEndZ = unpack(g_RWGrid[uint3(DTid.xy, uDepthEnd)]).z;
+			bFill = vNormBegZ < 0.5 || vNormEndZ > 0.5;
 #endif
-			bFill = vNormBegZ < 0.0 || vNormEndZ > 0.0;
 		}
 #endif
 
