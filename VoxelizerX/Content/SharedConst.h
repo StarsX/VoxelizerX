@@ -9,6 +9,8 @@
 
 #define	USE_NORMAL	1
 
+#define	USE_MUTEX	1
+
 #if	USE_NORMAL
 #define	DEPTH_SCALE	0.25
 #else

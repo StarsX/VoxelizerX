@@ -119,9 +119,6 @@
     <None Include="Content\CSMutex.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Content\CSPackedFP16.hlsli">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="Content\DSTriProj.hlsli">
       <Filter>Shaders</Filter>
     </None>
@@ -133,6 +130,9 @@
     </None>
     <None Include="Content\PSTriProj.hlsli">
       <Filter>Shaders</Filter>
+    </None>
+    <None Include="Common\d3dx_dxgiformatconvert.inl">
+      <Filter>Common</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

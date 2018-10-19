@@ -8,6 +8,8 @@
 #include "XSDXState.h"
 #include "XSDXResource.h"
 
+#include "SharedConst.h"
+
 class Voxelizer
 {
 public:
@@ -85,6 +87,7 @@ protected:
 		DirectX::XMMATRIX mScreenToLocal;
 	};
 
+#if	USE_MUTEX
 	struct upTexture3Ds
 	{
 		using ppTexture3D = std::add_pointer_t<XSDX::upTexture3D>;
@@ -94,6 +97,7 @@ protected:
 		XSDX::upTexture3D w;
 		ppTexture3D array = &x;
 	};
+#endif
 
 	void createVB(const uint32_t uNumVert, const uint32_t uStride, const uint8_t *pData);
 	void createIB(const uint32_t uNumIndices, const uint32_t *pData);
@@ -121,8 +125,12 @@ protected:
 	XSDX::CPDXBuffer				m_pCBBound;
 	XSDX::vCPDXBuffer				m_vpCBPerMipLevels;
 
+#if	USE_MUTEX
 	upTexture3Ds					m_pTxGrids;
 	XSDX::upTexture3D				m_pTxUint;
+#else
+	XSDX::upTexture3D				m_pTxGrid;
+#endif
 	XSDX::upTexture2D				m_pTxKBufferDepth;
 
 	XSDX::spShader					m_pShader;

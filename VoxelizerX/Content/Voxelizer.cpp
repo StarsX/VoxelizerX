@@ -2,7 +2,6 @@
 // By XU, Tianchen
 //--------------------------------------------------------------------------------------
 
-#include "SharedConst.h"
 #include "ObjLoader.h"
 #include "Voxelizer.h"
 
@@ -49,6 +48,7 @@ void Voxelizer::Init(const uint32_t uWidth, const uint32_t uHeight, const char *
 	m_uNumLevels = max(static_cast<uint32_t>(log2(GRID_SIZE)), 1);
 	createCBs();
 
+#if	USE_MUTEX
 	for (auto i = 0ui8; i < 3; ++i)
 	{
 		m_pTxGrids.array[i] = make_unique<Texture3D>(m_pDXDevice);
@@ -58,8 +58,12 @@ void Voxelizer::Init(const uint32_t uWidth, const uint32_t uHeight, const char *
 	m_pTxGrids.w->Create(GRID_SIZE, GRID_SIZE, GRID_SIZE, DXGI_FORMAT_R8_UNORM);
 
 	m_pTxUint = make_unique<Texture3D>(m_pDXDevice);
-	m_pTxUint->Create(GRID_SIZE, GRID_SIZE, GRID_SIZE, DXGI_FORMAT_R32_UINT,
-		D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS);
+	m_pTxUint->Create(GRID_SIZE, GRID_SIZE, GRID_SIZE, DXGI_FORMAT_R32_UINT);
+
+#else
+	m_pTxGrid = make_unique<Texture3D>(m_pDXDevice);
+	m_pTxGrid->Create(GRID_SIZE, GRID_SIZE, GRID_SIZE, DXGI_FORMAT_R10G10B10A2_UNORM, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_PACKED_UAV);
+#endif
 
 	m_pTxKBufferDepth = make_unique<Texture2D>(m_pDXDevice);
 	m_pTxKBufferDepth->Create(GRID_SIZE, GRID_SIZE, static_cast<uint32_t>(GRID_SIZE * DEPTH_SCALE), DXGI_FORMAT_R32_UINT);
@@ -190,11 +194,15 @@ void Voxelizer::voxelize(const Method eVoxMethod, const bool bDepthPeel, const u
 	const auto uOffset = 0u;
 	const auto pUAVs =
 	{
+#if	USE_MUTEX
 		m_pTxGrids.x->GetUAV(uMip).Get(),
 		m_pTxGrids.y->GetUAV(uMip).Get(),
 		m_pTxGrids.z->GetUAV(uMip).Get(),
 		m_pTxGrids.w->GetUAV(uMip).Get(),
 		m_pTxUint->GetUAV().Get(),
+#else
+		m_pTxGrid->GetUAV(uMip).Get(),
+#endif
 		m_pTxKBufferDepth->GetUAV().Get()
 	};
 	m_pDXContext->OMSetRenderTargetsAndUnorderedAccessViews(0, nullptr, nullptr,
@@ -205,9 +213,13 @@ void Voxelizer::voxelize(const Method eVoxMethod, const bool bDepthPeel, const u
 	m_pDXContext->RSSetViewports(uNumViewports, &vpSlice);
 	m_pDXContext->RSSetState(m_pState->CullNone().Get());
 
+#if	USE_MUTEX
 	for (auto i = 0ui8; i < 4; ++i)
 		m_pDXContext->ClearUnorderedAccessViewFloat(m_pTxGrids.array[i]->GetUAV(uMip).Get(), DirectX::Colors::Transparent);
 	m_pDXContext->ClearUnorderedAccessViewUint(m_pTxUint->GetUAV().Get(), XMVECTORU32{ 0 }.u);
+#else
+	m_pDXContext->ClearUnorderedAccessViewUint(m_pTxGrid->GetUAV(uMip).Get(), XMVECTORU32{ 0 }.u);
+#endif
 	if (bDepthPeel) m_pDXContext->ClearUnorderedAccessViewUint(m_pTxKBufferDepth->GetUAV().Get(), XMVECTORU32{ UINT32_MAX }.u);
 	
 	m_pDXContext->VSSetConstantBuffers(0, 1, m_pCBBound.GetAddressOf());
@@ -284,14 +296,21 @@ void Voxelizer::voxelizeSolid(const Method eVoxMethod, const uint8_t uMip)
 	voxelize(eVoxMethod, true, uMip);
 
 	// Setup
+#if	USE_MUTEX
+	const auto pUAV = m_pTxGrids.w->GetUAV().Get();
+#else
+	const auto pUAV = m_pTxGrid->GetUAV().Get();
+#endif
 	const auto pSRVs =
 	{
+		m_pTxKBufferDepth->GetSRV().Get(),
+#if	USE_MUTEX
 		m_pTxGrids.x->GetSRV().Get(),
 		m_pTxGrids.y->GetSRV().Get(),
-		m_pTxGrids.z->GetSRV().Get(),
-		m_pTxKBufferDepth->GetSRV().Get()
+		m_pTxGrids.z->GetSRV().Get()
+#endif
 	};
-	m_pDXContext->CSSetUnorderedAccessViews(0, 1, m_pTxGrids.w->GetUAV().GetAddressOf(), &g_uNullUint);
+	m_pDXContext->CSSetUnorderedAccessViews(0, 1, &pUAV, &g_uNullUint);
 	m_pDXContext->CSSetShaderResources(0, static_cast<uint32_t>(pSRVs.size()), pSRVs.begin());
 	m_pDXContext->CSSetConstantBuffers(0, 1, m_vpCBPerMipLevels[uMip].GetAddressOf());
 
@@ -320,10 +339,14 @@ void Voxelizer::renderPointArray()
 
 	const auto pSRVs =
 	{
+#if	USE_MUTEX
 		m_pTxGrids.x->GetSRV().Get(),
 		m_pTxGrids.y->GetSRV().Get(),
 		m_pTxGrids.z->GetSRV().Get(),
-		m_pTxGrids.w->GetSRV().Get(),
+		m_pTxGrids.w->GetSRV().Get()
+#else
+		m_pTxGrid->GetSRV().Get()
+#endif
 	};
 	m_pDXContext->VSSetShaderResources(0, static_cast<uint32_t>(pSRVs.size()), pSRVs.begin());
 
@@ -347,10 +370,14 @@ void Voxelizer::renderBoxArray()
 
 	const auto pSRVs =
 	{
+#if	USE_MUTEX
 		m_pTxGrids.x->GetSRV().Get(),
 		m_pTxGrids.y->GetSRV().Get(),
 		m_pTxGrids.z->GetSRV().Get(),
-		m_pTxGrids.w->GetSRV().Get(),
+		m_pTxGrids.w->GetSRV().Get()
+#else
+		m_pTxGrid->GetSRV().Get()
+#endif
 	};
 	m_pDXContext->VSSetShaderResources(0, static_cast<uint32_t>(pSRVs.size()), pSRVs.begin());
 
@@ -368,8 +395,13 @@ void Voxelizer::renderRayCast(const CPDXUnorderedAccessView &pUAVSwapChain)
 	static_cast<LPDXTexture2D>(pSrc.Get())->GetDesc(&desc);
 
 	// Setup
+#if	USE_MUTEX
+	const auto pSRV = m_pTxGrids.w->GetSRV().Get();
+#else
+	const auto pSRV = m_pTxGrid->GetSRV().Get();
+#endif
 	m_pDXContext->CSSetUnorderedAccessViews(0, 1, pUAVSwapChain.GetAddressOf(), &g_uNullUint);
-	m_pDXContext->CSSetShaderResources(0, 1, m_pTxGrids.w->GetSRV().GetAddressOf());
+	m_pDXContext->CSSetShaderResources(0, 1, &pSRV);
 	m_pDXContext->CSSetSamplers(0, 1, m_pState->LinearClamp().GetAddressOf());
 	m_pDXContext->CSSetConstantBuffers(0, 1, m_pCBPerObject.GetAddressOf());
 

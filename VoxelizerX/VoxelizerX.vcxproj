@@ -100,7 +100,7 @@
       <AdditionalLibraryDirectories>$(DXUT_DIR)Optional\Bin\Win32\Debug;$(DXUT_DIR)Core\Bin\Win32\Debug</AdditionalLibraryDirectories>
     </Link>
     <FxCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)Content\;$(ProjectDir)XSDX\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Content\;$(ProjectDir)XSDX\</AdditionalIncludeDirectories>
     </FxCompile>
     <PostBuildEvent>
       <Command>COPY /Y "$(OutDir)*.cso" "$(ProjectDir)..\Bin\"
@@ -125,7 +125,7 @@ COPY /Y "$(OutDir)*.exe" "$(ProjectDir)..\Bin\"</Command>
       <AdditionalLibraryDirectories>$(DXUT_DIR)Optional\Bin\x64\Debug;$(DXUT_DIR)Core\Bin\x64\Debug</AdditionalLibraryDirectories>
     </Link>
     <FxCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)Content\;$(ProjectDir)XSDX\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Content\;$(ProjectDir)XSDX\</AdditionalIncludeDirectories>
     </FxCompile>
     <PostBuildEvent>
       <Command>COPY /Y "$(OutDir)*.cso" "$(ProjectDir)..\Bin\"
@@ -154,7 +154,7 @@ COPY /Y "$(OutDir)*.exe" "$(ProjectDir)..\Bin\"</Command>
       <AdditionalLibraryDirectories>$(DXUT_DIR)Optional\Bin\Win32\Release;$(DXUT_DIR)Core\Bin\Win32\Release</AdditionalLibraryDirectories>
     </Link>
     <FxCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)Content\;$(ProjectDir)XSDX\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Content\;$(ProjectDir)XSDX\</AdditionalIncludeDirectories>
     </FxCompile>
     <PostBuildEvent>
       <Command>COPY /Y "$(OutDir)*.cso" "$(ProjectDir)..\Bin\"
@@ -183,7 +183,7 @@ COPY /Y "$(OutDir)*.exe" "$(ProjectDir)..\Bin\"</Command>
       <AdditionalLibraryDirectories>$(DXUT_DIR)Optional\Bin\x64\Release;$(DXUT_DIR)Core\Bin\x64\Release</AdditionalLibraryDirectories>
     </Link>
     <FxCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)Content\;$(ProjectDir)XSDX\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Content\;$(ProjectDir)XSDX\</AdditionalIncludeDirectories>
     </FxCompile>
     <PostBuildEvent>
       <Command>COPY /Y "$(OutDir)*.cso" "$(ProjectDir)..\Bin\"
@@ -258,8 +258,8 @@ COPY /Y "$(OutDir)*.exe" "$(ProjectDir)..\Bin\"</Command>
     <Image Include="VoxelizerX.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Common\d3dx_dxgiformatconvert.inl" />
     <None Include="Content\CSMutex.hlsli" />
-    <None Include="Content\CSPackedFP16.hlsli" />
     <None Include="Content\DSTriProj.hlsli" />
     <None Include="Content\HSTriProj.hlsli" />
     <None Include="Content\PSDepthPeel.hlsli" />
