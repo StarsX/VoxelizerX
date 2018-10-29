@@ -330,6 +330,7 @@ const CPDXRenderTargetView &RenderTarget::GetRTV(const uint8_t uSlice, const uin
 {
 	assert(m_vvpRTVs.size() > uSlice);
 	assert(m_vvpRTVs[uSlice].size() > uMip);
+
 	return m_vvpRTVs[uSlice][uMip];
 }
 
@@ -340,6 +341,8 @@ const uint8_t RenderTarget::GetArraySize() const
 
 const uint8_t RenderTarget::GetNumMips(const uint8_t uSlice) const
 {
+	assert(m_vvpRTVs.size() > uSlice);
+
 	return static_cast<uint8_t>(m_vvpRTVs[uSlice].size());
 }
 
@@ -413,7 +416,7 @@ void DepthStencil::Create(const uint32_t uWidth, const uint32_t uHeight, const u
 			break;
 		default:
 			eFmtTexture = DXGI_FORMAT_R32_TYPELESS;
-			auto fmtSRV = DXGI_FORMAT_R32_FLOAT;
+			eFmtDepth = DXGI_FORMAT_R32_FLOAT;
 		}
 	}
 
@@ -463,8 +466,7 @@ void DepthStencil::Create(const uint32_t uWidth, const uint32_t uHeight, const u
 
 		if (bSRV)
 		{
-			dsvDesc.Flags = eFormat == DXGI_FORMAT_D24_UNORM_S8_UINT ?
-				D3D11_DSV_READ_ONLY_DEPTH | D3D11_DSV_READ_ONLY_STENCIL :
+			dsvDesc.Flags = eFmtStencil ? D3D11_DSV_READ_ONLY_DEPTH | D3D11_DSV_READ_ONLY_STENCIL :
 				D3D11_DSV_READ_ONLY_DEPTH;
 
 			// Create the depth stencil view.
@@ -483,12 +485,14 @@ void DepthStencil::Create(const uint32_t uWidth, const uint32_t uHeight, const D
 const CPDXDepthStencilView &DepthStencil::GetDSV(const uint8_t uMip) const
 {
 	assert(m_vpDSVs.size() > uMip);
+
 	return m_vpDSVs[uMip];
 }
 
 const CPDXDepthStencilView &DepthStencil::GetDSVRO(const uint8_t uMip) const
 {
 	assert(m_vpDSVROs.size() > uMip);
+
 	return m_vpDSVROs[uMip];
 }
 
